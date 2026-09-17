@@ -53,7 +53,7 @@ The change list stays short and grouped rather than listing every edit. The most
 useful line is usually the last one. When the skill leaves something alone to
 protect a technical meaning, it says so.
 
-See [examples/after.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/main/examples/after.md)
+See [examples/after.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/HEAD/examples/after.md)
 for a full pass, next to the draft it started from.
 
 ## Reviewing the result

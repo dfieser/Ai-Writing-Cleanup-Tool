@@ -125,11 +125,11 @@ Three offenders come up most:
 ## Full text
 
 Every rule carries worked examples in
-[SKILL.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/main/skills/ai-writing-cleanup/SKILL.md).
+[SKILL.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/HEAD/skills/ai-writing-cleanup/SKILL.md).
 Two reference files go deeper:
 
-- [ai-tells.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/main/skills/ai-writing-cleanup/references/ai-tells.md)
+- [ai-tells.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/HEAD/skills/ai-writing-cleanup/references/ai-tells.md)
   catalogs machine-writing tells, with plain-word swaps.
-- [tech-pub-rules.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/main/skills/ai-writing-cleanup/references/tech-pub-rules.md)
+- [tech-pub-rules.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/HEAD/skills/ai-writing-cleanup/references/tech-pub-rules.md)
   covers voice, nominalizations, noun stacks, referents, tense, terminology,
   abbreviations, chunking, adjective punctuation, quotes, and parentheses.
