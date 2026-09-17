@@ -185,8 +185,10 @@ class PublicDocs(unittest.TestCase):
     """The repository's own docs follow the rules the skill teaches."""
 
     def docs(self):
-        return [REPO / "README.md", REPO / "CONTRIBUTING.md", REPO / "CHANGELOG.md",
-                REPO / "examples" / "after.md"]
+        names = ["README.md", "CONTRIBUTING.md", "CHANGELOG.md",
+                 "examples/after.md", "wiki/Home.md", "wiki/Checker-Reference.md",
+                 "wiki/Editing-Workflow.md", "wiki/FAQ.md"]
+        return [REPO / n for n in names]
 
     def test_no_em_dashes_in_public_docs(self):
         for path in self.docs():

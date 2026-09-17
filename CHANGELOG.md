@@ -17,6 +17,9 @@ this. The repository is now its home.
   every public document, and validates the manifests.
 - `examples/before.md` and `examples/after.md`, a full editing pass with the
   change list the skill produces.
+- Wiki pages under `wiki/`, covering the rules, the checker, the editing
+  workflow, and a FAQ. `publish-wiki.sh` pushes them to the GitHub wiki, which
+  git treats as a separate repository.
 
 ### Fixed in `check_writing.py`
 

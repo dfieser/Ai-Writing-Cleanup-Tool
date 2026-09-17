@@ -33,16 +33,24 @@ jobs:
 
       - name: Report on every public document
         run: |
-          for doc in README.md CONTRIBUTING.md CHANGELOG.md examples/after.md; do
+          for doc in README.md CONTRIBUTING.md CHANGELOG.md examples/*.md wiki/*.md; do
             echo "::group::$doc"
             python3 skills/ai-writing-cleanup/scripts/check_writing.py "$doc"
             echo "::endgroup::"
           done
 
+      # Gated on the mechanical checks only. Parentheses stay out because
+      # Markdown link syntax reads as a prose aside, and the heuristic checks
+      # stay out because they fail on correct prose.
+      # examples/before.md and wiki/The-Rules.md quote bad writing in order to
+      # teach it, so both report defects on purpose and stay off this list.
       - name: Fail on em dashes, scare quotes, buzzwords, or filler
         run: |
           status=0
-          for doc in README.md CONTRIBUTING.md CHANGELOG.md examples/after.md; do
+          docs="README.md CONTRIBUTING.md CHANGELOG.md examples/after.md"
+          docs="$docs wiki/Home.md wiki/Checker-Reference.md"
+          docs="$docs wiki/Editing-Workflow.md wiki/FAQ.md"
+          for doc in $docs; do
             summary=$(python3 skills/ai-writing-cleanup/scripts/check_writing.py "$doc" --quiet)
             for gate in em-dashes scare-quotes buzzwords wordy filler; do
               count=$(printf '%s' "$summary" | grep -o "$gate=[0-9]*" | cut -d= -f2)

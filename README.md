@@ -156,6 +156,20 @@ the verb.
 Read each flag and judge it. Do not rewrite everything the script lists. A clean
 report is a floor, not proof that the prose is good.
 
+## Documentation
+
+The [wiki](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/wiki) goes deeper
+than this page:
+
+- **The Rules** lists all 18 rules and maps each one to the check that finds it.
+- **Checker Reference** explains all 16 checks and where the heuristics guess.
+- **Editing Workflow** covers how to ask, what comes back, and how to review it.
+- **FAQ** answers the questions that come up first.
+
+Those pages live in `wiki/` here, so they get reviewed and scanned with the rest
+of the documentation. `./publish-wiki.sh` copies them to the GitHub wiki, which
+is a separate git repository. Run it with `--dry-run` to see the diff first.
+
 ## Repository layout
 
 ```
@@ -167,7 +181,9 @@ skills/
     references/       detailed reference material
     scripts/          check_writing.py
 tests/                unit tests for the checker
+wiki/                 source for the GitHub wiki pages
 install.sh            installer
+publish-wiki.sh       pushes wiki/ to the GitHub wiki
 ```
 
 ## Contributing
