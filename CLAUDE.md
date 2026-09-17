@@ -12,7 +12,9 @@ inside this repository.
   and never rewrites. Stdlib only, Python 3.9 or later.
 - `dist/ai-writing-cleanup.bundle.md` is the whole ruleset in one file, generated
   by `tools/build_bundle.py`.
-- `wiki/` holds the GitHub wiki pages. `publish-wiki.sh` pushes them.
+- `wiki/` holds the GitHub wiki pages. The `publish wiki` workflow pushes them
+  when a change under `wiki/` reaches the default branch, and the Actions tab
+  can start it by hand. `publish-wiki.sh` does the same from a terminal.
 
 ## Before you commit
 

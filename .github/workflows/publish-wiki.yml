@@ -1,0 +1,71 @@
+name: publish wiki
+
+# Publishes the pages in wiki/ to the GitHub wiki, which git treats as a
+# separate repository. This runs on GitHub, so nobody needs a local clone.
+#
+# Trigger it by hand from the Actions tab, or let a push to the default branch
+# that touches wiki/ do it.
+#
+# It authenticates with the built-in GITHUB_TOKEN. If a run fails with a 403 on
+# the push, this repository requires a personal access token for wiki writes
+# instead: create one with the "repo" scope, save it as a secret named
+# WIKI_TOKEN, and the step below picks it up automatically.
+
+on:
+  push:
+    paths:
+      - "wiki/**"
+      - ".github/workflows/publish-wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: sync wiki/ to the GitHub wiki
+    runs-on: ubuntu-latest
+    # Only from the default branch, whatever it is currently named, or when a
+    # human presses the button.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.ref_name == github.event.repository.default_branch
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push the pages
+        env:
+          TOKEN: ${{ secrets.WIKI_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ ! -d wiki ] || [ -z "$(ls -A wiki/*.md 2>/dev/null)" ]; then
+            echo "::error::wiki/ holds no pages"
+            exit 1
+          fi
+
+          remote="https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
+
+          if ! git clone --quiet "$remote" wiki-repo 2>/dev/null; then
+            echo "::error::cannot clone the wiki. Open the repository's Wiki tab"
+            echo "::error::and create the first page once, then re-run this job."
+            exit 1
+          fi
+
+          find wiki-repo -maxdepth 1 -name '*.md' -delete
+          cp wiki/*.md wiki-repo/
+
+          cd wiki-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "wiki is already up to date"
+            exit 0
+          fi
+
+          git diff --cached --stat
+          git commit --quiet -m "Sync wiki from ${GITHUB_SHA:0:7}"
+          git push --quiet origin HEAD
+          echo "published $(ls ../wiki/*.md | wc -l) pages"

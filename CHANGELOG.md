@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.2
+
+### Added
+
+- A `publish wiki` workflow. It syncs `wiki/` to the GitHub wiki from GitHub
+  itself, so publishing no longer needs a local clone or a terminal. A push to
+  the default branch touching `wiki/` triggers it, and the Actions tab can start
+  it by hand. It authenticates with the built-in `GITHUB_TOKEN` and falls back to
+  a `WIKI_TOKEN` secret if this repository requires one for wiki writes.
+
+### Changed
+
+- `README.md` and `CLAUDE.md` now name the workflow as the way to publish the
+  wiki, with `publish-wiki.sh` as the terminal alternative rather than the only
+  route.
+
 ## 1.1.1
 
 ### Changed

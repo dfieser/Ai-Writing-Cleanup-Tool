@@ -185,8 +185,13 @@ than this page:
 - **FAQ** answers the questions that come up first.
 
 Those pages live in `wiki/` here, so they get reviewed and scanned with the rest
-of the documentation. `./publish-wiki.sh` copies them to the GitHub wiki, which
-is a separate git repository. Run it with `--dry-run` to see the diff first.
+of the documentation. The GitHub wiki is a separate git repository, and the
+`publish wiki` workflow copies them across. It runs on GitHub, so it needs no
+local clone. Push a change under `wiki/` to the default branch, or start the
+workflow by hand from the Actions tab.
+
+With a clone, `./publish-wiki.sh` does the same thing from a terminal, and
+`--dry-run` shows the diff first.
 
 ## Repository layout
 
@@ -205,7 +210,8 @@ tests/                unit tests for the checker
 tools/build_bundle.py regenerates dist/ from the skill sources
 wiki/                 source for the GitHub wiki pages
 install.sh            installer
-publish-wiki.sh       pushes wiki/ to the GitHub wiki
+publish-wiki.sh       pushes wiki/ to the GitHub wiki from a terminal
+.github/workflows/    tests, the documentation gate, and the wiki publisher
 ```
 
 ## Contributing
