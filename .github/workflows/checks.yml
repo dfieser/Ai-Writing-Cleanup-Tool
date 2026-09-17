@@ -1,0 +1,98 @@
+name: checks
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: tests (python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+  self-check:
+    name: run the checker on our own docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Report on every public document
+        run: |
+          for doc in README.md CONTRIBUTING.md CHANGELOG.md examples/after.md; do
+            echo "::group::$doc"
+            python3 skills/ai-writing-cleanup/scripts/check_writing.py "$doc"
+            echo "::endgroup::"
+          done
+
+      - name: Fail on em dashes, scare quotes, buzzwords, or filler
+        run: |
+          status=0
+          for doc in README.md CONTRIBUTING.md CHANGELOG.md examples/after.md; do
+            summary=$(python3 skills/ai-writing-cleanup/scripts/check_writing.py "$doc" --quiet)
+            for gate in em-dashes scare-quotes buzzwords wordy filler; do
+              count=$(printf '%s' "$summary" | grep -o "$gate=[0-9]*" | cut -d= -f2)
+              if [ "${count:-0}" -ne 0 ]; then
+                echo "::error file=$doc::$gate=$count in $doc"
+                status=1
+              fi
+            done
+          done
+          exit $status
+
+      - name: Confirm the checker still catches a dirty document
+        run: |
+          summary=$(python3 skills/ai-writing-cleanup/scripts/check_writing.py \
+            examples/before.md --quiet)
+          echo "$summary"
+          printf '%s' "$summary" | grep -q 'em-dashes=3' \
+            || { echo "::error::examples/before.md should report 3 em dashes"; exit 1; }
+
+  manifests:
+    name: validate plugin manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check manifests parse and carry the fields we rely on
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, sys
+
+          plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text())
+          market = json.loads(pathlib.Path(".claude-plugin/marketplace.json").read_text())
+
+          failures = []
+          for field in ("name", "version", "description", "author", "skills"):
+              if field not in plugin:
+                  failures.append(f"plugin.json is missing {field}")
+          for field in ("name", "description", "owner", "plugins"):
+              if field not in market:
+                  failures.append(f"marketplace.json is missing {field}")
+
+          for rel in plugin.get("skills", []):
+              skill = pathlib.Path(rel) / "SKILL.md"
+              if not skill.is_file():
+                  failures.append(f"plugin.json points at {rel}, which has no SKILL.md")
+
+          names = [p.get("name") for p in market.get("plugins", [])]
+          if plugin.get("name") not in names:
+              failures.append(f"marketplace.json does not list {plugin.get('name')}")
+
+          for line in failures:
+              print(f"::error::{line}")
+          sys.exit(1 if failures else 0)
+          PY

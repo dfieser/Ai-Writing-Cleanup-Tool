@@ -1,0 +1,24 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "ai-writing-cleanup",
+  "version": "1.0.0",
+  "description": "Edit technical writing so it is clear, direct, and reads like a knowledgeable person wrote it rather than a language model. Removes em dashes, scare quotes, buzzwords, filler, passive voice, hidden verbs, and noun stacks while preserving every technical fact. Ships a deterministic checker script.",
+  "author": {
+    "name": "dfieser",
+    "url": "https://github.com/dfieser"
+  },
+  "homepage": "https://github.com/dfieser/Ai-Writing-Cleanup-Tool",
+  "repository": "https://github.com/dfieser/Ai-Writing-Cleanup-Tool",
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "editing",
+    "technical-writing",
+    "style",
+    "documentation",
+    "ai-detection"
+  ],
+  "skills": [
+    "./skills/ai-writing-cleanup"
+  ]
+}

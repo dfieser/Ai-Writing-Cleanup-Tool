@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ai-writing-cleanup-tool",
+  "description": "The ai-writing-cleanup skill: edit technical writing so it is clear, direct, and free of the tells that mark machine-generated prose.",
+  "owner": {
+    "name": "dfieser",
+    "url": "https://github.com/dfieser"
+  },
+  "plugins": [
+    {
+      "name": "ai-writing-cleanup",
+      "source": "./",
+      "description": "Edit technical writing so it is clear, direct, and reads like a knowledgeable person wrote it rather than a language model.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "keywords": [
+        "writing",
+        "editing",
+        "technical-writing",
+        "style",
+        "documentation"
+      ]
+    }
+  ]
+}
