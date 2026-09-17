@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.1
+
+### Changed
+
+- Synced `SKILL.md` from upstream. It gained a section titled "Scope is settled
+  before the edit starts", which argues the grounds for rules 4, 5, 9, 10, and 11
+  and bars dropping any of them, plus a reworked frontmatter description and a
+  note that Part 1 and Part 2 are an organizing split rather than a ranking.
+- `AGENTS.md` now separates judging a single heuristic flag from dropping a rule,
+  so the agent guidance matches that new section.
+- Regenerated `dist/ai-writing-cleanup.bundle.md`.
+
+`check_writing.py` and both reference files are unchanged upstream, so the
+checker keeps the fixes below.
+
 ## 1.1.0
 
 Made the repository usable by an agent that arrives with nothing but the link,

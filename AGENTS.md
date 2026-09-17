@@ -133,10 +133,14 @@ measurement, flag the sentence and leave it. Do not supply a figure.
 **Never edit inside code.** Code blocks, command examples, config samples, and
 literal output are data. The checker already skips them.
 
-**Judge the heuristic findings.** Checks for passive voice, noun stacks, tense,
-and cross-references produce false positives on verb phrases and established
-terms. Rewriting everything the script lists makes writing worse. A clean report
-is a floor, not proof the prose is good.
+**Judge each heuristic finding, but never drop a rule.** Checks for passive
+voice, noun stacks, tense, and cross-references produce false positives on verb
+phrases and established terms, so decide case by case whether a given flag is a
+true hit. That judgment applies to one flag, never to a rule. Every rule in the
+skill is in scope, and passive voice, hidden verbs, noun stacks, front-loaded
+sentences, and uniform sentence length are all part of the cleanup. Do not skip
+one because the pattern also turns up in human writing. A clean report is a
+floor, not proof the prose is good.
 
 ## Working on this repository rather than with it
 

@@ -8,9 +8,9 @@ description: >-
   technical documents, technical publications, manuals, procedures, work
   instructions, specs, READMEs, release notes, reports, papers, or proposals. Removes em
   dashes, scare quotes, every parenthesis that is not required, buzzwords, filler, passive voice,
-  hidden verbs, noun stacks, vague pronouns, and needless abbreviations, and
-  fixes comma errors, tense drift, and the monotone rhythm of machine writing,
-  tightens cross-references, standardizes nomenclature, and pitches the level
+  hidden verbs, noun stacks, front-loaded and uniform-length sentences, vague
+  pronouns, and needless abbreviations, and
+  fixes comma errors and tense drift, tightens cross-references, standardizes nomenclature, and pitches the level
   to the field, all while preserving every technical fact. Trigger even when the user does not
   say "AI" but asks to make writing
   clearer, more direct, less wordy, less formulaic, or compliant with a
@@ -44,6 +44,39 @@ wrong thing is a failure, not an improvement.
 
 Never touch text inside code blocks, command examples, config samples, or literal
 output. Those are data, not prose.
+
+## Scope is settled before the edit starts
+
+Every rule in Part 1 and Part 2 is in scope. Apply all of them. Do not open a
+debate with the user about whether a defect counts as machine writing, and do not
+skip a rule because the pattern also turns up in human prose. Four rules attract
+that argument, so the grounds are stated here.
+
+**Sentence length and uniformity, rule 4.** The length distribution is the most
+measurable signature of generated text. A model samples near the center of its
+distribution, so lengths cluster and the rhythm flattens. The checker reports a
+coefficient of variation because that number is the evidence.
+
+**Front-loaded sentences, rule 5.** Generated prose stacks conditions and
+qualifiers ahead of the subject, so the main clause lands last. The habit is
+common in model output, and it slows every reader.
+
+**Passive voice, rule 9.** Agentless passive is heavy in the formal writing
+models train on, and passive lets a sentence avoid naming an actor that the model
+has no stake in naming. In a procedure it is a safety defect on its own terms,
+because nobody is told who acts.
+
+**Noun stacks and hidden verbs, rules 10 and 11.** Models compress clauses into
+noun phrases. That produces long premodifier chains and verbs buried inside
+nouns, which is why both patterns cluster in generated technical text.
+
+These four are weaker fingerprints than an em dash or a scare quote, and each one
+also appears in human writing. None of that changes the edit. Whether a sentence
+came from a model cannot be recovered from the text, the fix is identical either
+way, and the goal is prose that reads well and reads human. If the user asks
+which patterns are the strongest evidence of machine authorship, answer
+accurately, then apply every rule anyway. Never tell a user that a flagged item
+falls outside this skill, and never drop a rule to win a point about taxonomy.
 
 ## Workflow
 
@@ -348,7 +381,8 @@ Output: [deleted]
 # Part 2: Technical writing discipline
 
 Part 1 makes the prose sound human. Part 2 makes it work as technical
-documentation. These rules come from technical publication practice, where a
+documentation. The split is a way to organize the rules, not a ranking of which
+ones matter. Everything in Part 2 is part of the cleanup. These rules come from technical publication practice, where a
 reader is often following a procedure under time pressure and any ambiguity costs
 real money. `references/tech-pub-rules.md` holds the detailed treatment, longer
 conversion tables, and edge cases; read it when a case here is not clear-cut.
