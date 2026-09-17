@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # Install the ai-writing-cleanup skill for Claude Code or Claude Desktop.
 #
-#   ./install.sh              install for your user  (~/.claude/skills)
-#   ./install.sh --project    install into the current project (./.claude/skills)
-#   ./install.sh --link       symlink instead of copy, so git pull updates it
-#   ./install.sh --uninstall  remove an existing install
+#   ./install.sh                install for your user  (~/.claude/skills)
+#   ./install.sh --project      install into the current project (./.claude/skills)
+#   ./install.sh --into DIR     install into DIR/.claude/skills
+#   ./install.sh --link         symlink instead of copy, so git pull updates it
+#   ./install.sh --uninstall    remove an existing install
+#
+# Works from any directory. The last lines of output are SKILL_PATH=... and
+# CHECKER=..., so a caller can parse them.
 #
 set -euo pipefail
 
@@ -14,23 +18,33 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/skills/$SKILL_NAME"
 scope="user"
 mode="copy"
 action="install"
+into=""
 
-for arg in "$@"; do
-  case "$arg" in
+while [ $# -gt 0 ]; do
+  case "$1" in
     --project)   scope="project" ;;
     --user)      scope="user" ;;
+    --into)      shift; into="${1:-}"
+                 [ -n "$into" ] || { echo "--into needs a directory" >&2; exit 2; }
+                 scope="into" ;;
+    --into=*)    into="${1#--into=}"; scope="into" ;;
     --link)      mode="link" ;;
     --uninstall) action="uninstall" ;;
-    -h|--help)   sed -n '2,8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
-    *)           echo "unknown option: $arg" >&2; exit 2 ;;
+    -h|--help)   sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *)           echo "unknown option: $1" >&2; exit 2 ;;
   esac
+  shift
 done
 
-if [ "$scope" = "project" ]; then
-  DEST_DIR="$PWD/.claude/skills"
-else
-  DEST_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
-fi
+case "$scope" in
+  into)
+    [ -d "$into" ] || { echo "no such directory: $into" >&2; exit 2; }
+    DEST_DIR="$(cd "$into" && pwd)/.claude/skills" ;;
+  project)
+    DEST_DIR="$PWD/.claude/skills" ;;
+  *)
+    DEST_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
+esac
 DEST="$DEST_DIR/$SKILL_NAME"
 
 if [ "$action" = "uninstall" ]; then
@@ -63,5 +77,5 @@ chmod +x "$DEST/scripts/check_writing.py" 2>/dev/null || true
 
 echo
 echo "Start a new Claude session, then ask it to clean up a draft."
-echo "Check the script directly with:"
-echo "  python3 $SRC/scripts/check_writing.py your-draft.md"
+echo "SKILL_PATH=$DEST"
+echo "CHECKER=$DEST/scripts/check_writing.py"

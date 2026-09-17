@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.1.0
+
+Made the repository usable by an agent that arrives with nothing but the link,
+or with the folder dropped into a workspace.
+
+### Added
+
+- `AGENTS.md`, the entry point. Four task recipes, the checker contract, the
+  JSON keys, and the rules an agent must not break.
+- `CLAUDE.md`, pointing at `AGENTS.md` and covering work inside the repository.
+- `--json` on the checker, a parseable report carrying counts, per-category
+  findings with line numbers, sentence statistics, and a suggestion wherever one
+  exists.
+- `--fail-on` on the checker, which turns counts into an exit code. It takes
+  `mechanics`, `heuristics`, `any`, or a comma separated list of categories.
+  Exit 1 means a selected category is above zero, and exit 2 means bad usage.
+- `dist/ai-writing-cleanup.bundle.md`, the whole ruleset in one file for an agent
+  with no skill loader. `tools/build_bundle.py` generates it, and CI fails when
+  it drifts from the sources.
+- `install.sh --into DIR`, which installs into any workspace from any working
+  directory. The installer now ends with parseable `SKILL_PATH=` and `CHECKER=`
+  lines.
+
+### Changed
+
+- The checker rejects an unknown option with exit 2 instead of ignoring it, so a
+  mistyped flag fails loudly rather than scanning the wrong thing.
+- CI gates with `--fail-on` rather than by grepping the summary line.
+
+### Fixed
+
+- Markdown link syntax, `[label](url)`, reported as a parenthetical prose aside.
+  Every document with a link failed its own parenthesis check, which made
+  `--fail-on mechanics` unusable on a README. Link targets are now exempt, and a
+  real aside such as `(it loads at boot)` still gets flagged.
+
 ## 1.0.0
 
 First packaged release. The skill lived in a local Claude skills folder before

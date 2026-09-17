@@ -33,42 +33,67 @@ jobs:
 
       - name: Report on every public document
         run: |
-          for doc in README.md CONTRIBUTING.md CHANGELOG.md examples/*.md wiki/*.md; do
+          for doc in README.md AGENTS.md CLAUDE.md CONTRIBUTING.md CHANGELOG.md \
+                     examples/*.md wiki/*.md; do
             echo "::group::$doc"
             python3 skills/ai-writing-cleanup/scripts/check_writing.py "$doc"
             echo "::endgroup::"
           done
 
-      # Gated on the mechanical checks only. Parentheses stay out because
-      # Markdown link syntax reads as a prose aside, and the heuristic checks
-      # stay out because they fail on correct prose.
-      # examples/before.md and wiki/The-Rules.md quote bad writing in order to
-      # teach it, so both report defects on purpose and stay off this list.
-      - name: Fail on em dashes, scare quotes, buzzwords, or filler
+      # Gated on the mechanical categories only. The heuristics group fails on
+      # correct prose, so gating a build on it would block good writing.
+      # examples/before.md and wiki/The-Rules.md quote bad writing to teach it,
+      # so both report defects on purpose and stay off this list.
+      - name: Gate the public documents
         run: |
           status=0
-          docs="README.md CONTRIBUTING.md CHANGELOG.md examples/after.md"
-          docs="$docs wiki/Home.md wiki/Checker-Reference.md"
+          docs="README.md AGENTS.md CLAUDE.md CONTRIBUTING.md CHANGELOG.md"
+          docs="$docs examples/after.md wiki/Home.md wiki/Checker-Reference.md"
           docs="$docs wiki/Editing-Workflow.md wiki/FAQ.md"
           for doc in $docs; do
-            summary=$(python3 skills/ai-writing-cleanup/scripts/check_writing.py "$doc" --quiet)
-            for gate in em-dashes scare-quotes buzzwords wordy filler; do
-              count=$(printf '%s' "$summary" | grep -o "$gate=[0-9]*" | cut -d= -f2)
-              if [ "${count:-0}" -ne 0 ]; then
-                echo "::error file=$doc::$gate=$count in $doc"
-                status=1
-              fi
-            done
+            if ! python3 skills/ai-writing-cleanup/scripts/check_writing.py \
+                 "$doc" --quiet --fail-on mechanics; then
+              echo "::error file=$doc::$doc fails the mechanical checks"
+              status=1
+            fi
           done
           exit $status
 
       - name: Confirm the checker still catches a dirty document
         run: |
-          summary=$(python3 skills/ai-writing-cleanup/scripts/check_writing.py \
-            examples/before.md --quiet)
-          echo "$summary"
-          printf '%s' "$summary" | grep -q 'em-dashes=3' \
-            || { echo "::error::examples/before.md should report 3 em dashes"; exit 1; }
+          if python3 skills/ai-writing-cleanup/scripts/check_writing.py \
+               examples/before.md --quiet --fail-on mechanics; then
+            echo "::error::examples/before.md should fail the gate but passed"
+            exit 1
+          fi
+          echo "the dirty example still fails the gate, as intended"
+
+      - name: Confirm the exit codes agents rely on
+        run: |
+          python3 skills/ai-writing-cleanup/scripts/check_writing.py \
+            AGENTS.md --json > /tmp/report.json
+          python3 -c "
+          import json, sys
+          d = json.load(open('/tmp/report.json'))
+          for key in ('verdict', 'counts', 'totals', 'gate', 'findings', 'notes'):
+              assert key in d, 'missing key: ' + key
+          print('json report OK, verdict:', d['verdict'])
+          "
+          python3 skills/ai-writing-cleanup/scripts/check_writing.py \
+            AGENTS.md --fail-on nonsense > /dev/null 2>&1 && \
+            { echo '::error::a bad category should exit 2'; exit 1; }
+          echo "exit codes OK"
+
+  bundle:
+    name: single-file bundle is current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check the bundle matches the skill sources
+        run: python3 tools/build_bundle.py --check
 
   manifests:
     name: validate plugin manifests

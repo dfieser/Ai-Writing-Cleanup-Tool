@@ -5,6 +5,14 @@ person wrote it rather than a language model. It strips the tells of machine
 prose and applies ordinary technical-writing discipline. It changes no technical
 fact.
 
+> **Handing this to an agent?** Point it at [AGENTS.md](AGENTS.md), which holds
+> the task recipes, the checker contract, and the rules it must not break. An
+> agent needs no installation to use the skill. It reads
+> `dist/ai-writing-cleanup.bundle.md`, edits against it, and verifies with
+> `check_writing.py --fail-on mechanics`. To drop the repository into a workspace
+> and let agents take over, unzip it there and run
+> `bash install.sh --into /path/to/workspace`.
+
 The repository ships three parts.
 
 | Part | Job |
@@ -121,13 +129,23 @@ SUMMARY: needs work.  em-dashes=3 scare-quotes=2 parentheses=1 buzzwords=5 wordy
          xref-defects=2 section-refs=0
 ```
 
-The script always exits 0. It reports, and it does not gate. To fail a build on
-em dashes, read the summary line:
+`--json` prints the same findings as a parseable report, with line numbers and a
+suggestion wherever one exists. Agents should read that rather than the text.
+
+`--fail-on` turns a count into an exit code, which is what a build or an agent
+branches on:
 
 ```bash
-python3 skills/ai-writing-cleanup/scripts/check_writing.py doc.md --quiet \
-  | grep -q 'em-dashes=0' || { echo "em dashes in doc.md"; exit 1; }
+python3 skills/ai-writing-cleanup/scripts/check_writing.py doc.md \
+  --quiet --fail-on mechanics
 ```
+
+Exit 0 means the selected categories are clear, 1 means at least one is above
+zero and stderr names which, and 2 means bad usage. Without `--fail-on` the exit
+code is always 0, so a plain scan reports without gating.
+
+Gate on `mechanics`. The `heuristics` group fails on correct prose, so a build
+that gates on it blocks good writing.
 
 ### What the report covers
 
@@ -173,7 +191,10 @@ is a separate git repository. Run it with `--dry-run` to see the diff first.
 ## Repository layout
 
 ```
+AGENTS.md             entry point for an agent, with task recipes
+CLAUDE.md             notes for Claude Code working inside this repository
 .claude-plugin/       plugin and marketplace manifests
+dist/                 the whole ruleset as one generated file
 examples/             a before and after pair, with the change list
 skills/
   ai-writing-cleanup/
@@ -181,6 +202,7 @@ skills/
     references/       detailed reference material
     scripts/          check_writing.py
 tests/                unit tests for the checker
+tools/build_bundle.py regenerates dist/ from the skill sources
 wiki/                 source for the GitHub wiki pages
 install.sh            installer
 publish-wiki.sh       pushes wiki/ to the GitHub wiki

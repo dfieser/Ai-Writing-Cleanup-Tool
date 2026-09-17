@@ -53,18 +53,19 @@ wordy phrases, and filler.
 
 ## Can I run it in CI?
 
-Yes. The script always exits 0, so gate on the summary line instead:
+Yes. Use `--fail-on`, which turns the counts into an exit code:
 
 ```bash
-python3 skills/ai-writing-cleanup/scripts/check_writing.py doc.md --quiet \
-  | grep -q 'em-dashes=0' || { echo "em dashes in doc.md"; exit 1; }
+python3 skills/ai-writing-cleanup/scripts/check_writing.py doc.md \
+  --quiet --fail-on mechanics
 ```
 
-The repository runs exactly this against its own documentation. See
-`.github/workflows/checks.yml`.
+Exit 0 means the selected categories are clear, 1 means one is above zero and
+stderr names which, and 2 means bad usage. The repository runs exactly this
+against its own documentation. See `.github/workflows/checks.yml`.
 
-Gate on the mechanical counts only. Gating on passive voice or noun stacks
-produces a build that fails for correct prose.
+Gate on `mechanics` only. Gating on passive voice or noun stacks produces a
+build that fails for correct prose.
 
 ## What does it need installed?
 

@@ -5,6 +5,7 @@ Run them with:
 """
 
 import importlib.util
+import json
 import pathlib
 import subprocess
 import sys
@@ -185,9 +186,10 @@ class PublicDocs(unittest.TestCase):
     """The repository's own docs follow the rules the skill teaches."""
 
     def docs(self):
-        names = ["README.md", "CONTRIBUTING.md", "CHANGELOG.md",
-                 "examples/after.md", "wiki/Home.md", "wiki/Checker-Reference.md",
-                 "wiki/Editing-Workflow.md", "wiki/FAQ.md"]
+        names = ["README.md", "AGENTS.md", "CLAUDE.md", "CONTRIBUTING.md",
+                 "CHANGELOG.md", "examples/after.md", "wiki/Home.md",
+                 "wiki/Checker-Reference.md", "wiki/Editing-Workflow.md",
+                 "wiki/FAQ.md"]
         return [REPO / n for n in names]
 
     def test_no_em_dashes_in_public_docs(self):
@@ -195,6 +197,162 @@ class PublicDocs(unittest.TestCase):
             with self.subTest(doc=path.name):
                 hits = cw.find_em_dashes(path.read_text(encoding="utf-8"))
                 self.assertEqual(hits, [], f"{path.name} has em dashes: {hits}")
+
+
+class MarkdownLinks(unittest.TestCase):
+    """Link syntax is not a prose aside, or every README fails its own gate."""
+
+    def test_link_target_not_flagged(self):
+        self.assertEqual(
+            cw.find_parentheses("See [the wiki](https://example.com/w) for more."), [])
+
+    def test_relative_link_not_flagged(self):
+        self.assertEqual(cw.find_parentheses("Read [the rules](./SKILL.md) first."), [])
+
+    def test_real_aside_still_flagged(self):
+        self.assertEqual(len(cw.find_parentheses("The cache is warm (it loads at boot).")), 1)
+
+
+def run_checker(*args, stdin=None):
+    """Run the CLI and hand back the finished process, whatever the exit code."""
+    return subprocess.run(
+        [sys.executable, str(SCRIPT), *args],
+        input=stdin if stdin is not None else "",
+        capture_output=True, text=True,
+    )
+
+
+class ExitCodes(unittest.TestCase):
+    """Agents branch on exit codes, so these are a contract."""
+
+    def test_no_gate_always_succeeds(self):
+        self.assertEqual(run_checker(str(REPO / "examples" / "before.md")).returncode, 0)
+
+    def test_gate_fails_on_a_dirty_document(self):
+        done = run_checker(str(REPO / "examples" / "before.md"), "--quiet",
+                           "--fail-on", "mechanics")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("FAILED on:", done.stderr)
+
+    def test_gate_passes_on_a_clean_document(self):
+        done = run_checker(str(REPO / "AGENTS.md"), "--quiet", "--fail-on", "mechanics")
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_equals_form_of_the_flag(self):
+        self.assertEqual(
+            run_checker(str(REPO / "AGENTS.md"), "--quiet", "--fail-on=mechanics").returncode, 0)
+
+    def test_single_category_gate(self):
+        done = run_checker(str(REPO / "examples" / "before.md"), "--quiet",
+                           "--fail-on", "em-dashes")
+        self.assertEqual(done.returncode, 1)
+
+    def test_unknown_category_is_a_usage_error(self):
+        done = run_checker(str(REPO / "AGENTS.md"), "--fail-on", "nonsense")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("unknown --fail-on category", done.stderr)
+
+    def test_unknown_option_is_a_usage_error(self):
+        done = run_checker(str(REPO / "AGENTS.md"), "--bogus")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("unknown option", done.stderr)
+
+    def test_missing_fail_on_value(self):
+        self.assertEqual(run_checker(str(REPO / "AGENTS.md"), "--fail-on").returncode, 2)
+
+
+class JsonReport(unittest.TestCase):
+    """The JSON shape is what an agent parses, so pin it down."""
+
+    def report(self, path=None):
+        target = str(path or (REPO / "examples" / "before.md"))
+        done = run_checker(target, "--json")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        return json.loads(done.stdout)
+
+    def test_top_level_keys(self):
+        d = self.report()
+        for key in ("file", "verdict", "counts", "totals", "gate", "sentences",
+                    "tense", "abbreviations", "findings", "notes"):
+            self.assertIn(key, d)
+
+    def test_every_category_is_counted(self):
+        counts = self.report()["counts"]
+        for name in cw.COUNT_KEYS:
+            self.assertIn(name, counts)
+            self.assertIsInstance(counts[name], int)
+
+    def test_counts_match_the_findings(self):
+        d = self.report()
+        self.assertEqual(d["counts"]["em-dashes"], len(d["findings"]["em-dashes"]))
+        self.assertEqual(d["counts"]["scare-quotes"], len(d["findings"]["scare-quotes"]))
+
+    def test_findings_carry_line_numbers(self):
+        for hit in self.report()["findings"]["em-dashes"]:
+            self.assertIsInstance(hit["line"], int)
+            self.assertIn("text", hit)
+
+    def test_buzzwords_carry_a_suggestion(self):
+        for hit in self.report()["findings"]["buzzwords"]:
+            self.assertTrue(hit["suggestion"])
+
+    def test_verdict_values(self):
+        self.assertEqual(self.report()["verdict"], "needs-work")
+        self.assertEqual(self.report(REPO / "AGENTS.md")["verdict"],
+                         self.report(REPO / "AGENTS.md")["verdict"])
+
+    def test_gate_block_reports_the_failure(self):
+        done = run_checker(str(REPO / "examples" / "before.md"), "--json",
+                           "--fail-on", "mechanics")
+        self.assertEqual(done.returncode, 1)
+        gate = json.loads(done.stdout)["gate"]
+        self.assertEqual(gate["exit_code"], 1)
+        self.assertIn("em-dashes", gate["failed"])
+
+    def test_empty_input_is_still_json(self):
+        done = run_checker("-", "--json", stdin="\n")
+        self.assertEqual(done.returncode, 0)
+        self.assertEqual(json.loads(done.stdout)["verdict"], "empty")
+
+
+class Bundle(unittest.TestCase):
+    """The single-file bundle is what an agent without a skill loader reads."""
+
+    def test_bundle_exists_and_is_current(self):
+        done = subprocess.run(
+            [sys.executable, str(REPO / "tools" / "build_bundle.py"), "--check"],
+            capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+    def test_bundle_holds_every_source(self):
+        text = (REPO / "dist" / "ai-writing-cleanup.bundle.md").read_text(encoding="utf-8")
+        for marker in ("Part A: the skill", "Part B: catalog of machine-writing tells",
+                       "Part C: technical publication rules"):
+            self.assertIn(marker, text)
+
+    def test_bundle_states_the_overriding_rule(self):
+        text = (REPO / "dist" / "ai-writing-cleanup.bundle.md").read_text(encoding="utf-8")
+        self.assertIn("Preserve technical truth", text)
+
+
+class AgentEntryPoints(unittest.TestCase):
+    """A dropped-in copy has to be usable without a human reading anything."""
+
+    def test_agents_file_exists(self):
+        self.assertTrue((REPO / "AGENTS.md").is_file())
+        self.assertTrue((REPO / "CLAUDE.md").is_file())
+
+    def test_agents_file_names_the_checker_and_the_bundle(self):
+        text = (REPO / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("skills/ai-writing-cleanup/scripts/check_writing.py", text)
+        self.assertIn("dist/ai-writing-cleanup.bundle.md", text)
+        self.assertIn("--fail-on mechanics", text)
+
+    def test_installer_accepts_into(self):
+        done = subprocess.run(["bash", str(REPO / "install.sh"), "--help"],
+                              capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0)
+        self.assertIn("--into", done.stdout)
 
 
 if __name__ == "__main__":

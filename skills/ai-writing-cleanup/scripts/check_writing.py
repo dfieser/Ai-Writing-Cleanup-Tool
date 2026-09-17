@@ -11,6 +11,18 @@ Usage:
     python3 check_writing.py path/to/file.md
     cat draft.txt | python3 check_writing.py -
     python3 check_writing.py file.md --quiet     # summary line only
+    python3 check_writing.py file.md --json      # machine-readable report
+    python3 check_writing.py file.md --fail-on mechanics   # exit 1 on defects
+
+Exit codes:
+    0  finished, and nothing the --fail-on selection covers was found
+    1  --fail-on was given and at least one selected category is above zero
+    2  bad usage, such as an unknown option or category
+
+Without --fail-on the exit code is always 0, so the scan reports without
+gating. --fail-on takes a group (mechanics, heuristics, any) or a comma
+separated list of category names as the summary prints them, for example
+"--fail-on em-dashes,buzzwords".
 
 Code blocks and inline code spans are skipped, so command examples do not
 create false hits. Several checks are heuristic (passive voice, noun stacks,
@@ -20,9 +32,35 @@ Stdlib only.
 """
 
 import bisect
+import json
 import re
 import sys
 import statistics
+
+# Category names, spelled as the summary line prints them. Agents gate on
+# these through --fail-on and read them back from --json.
+MECHANICAL_CATEGORIES = (
+    "em-dashes", "scare-quotes", "parentheses", "buzzwords", "wordy", "filler",
+)
+HEURISTIC_CATEGORIES = (
+    "front-loaded", "passive", "hidden-verbs", "noun-stacks", "weak-abbrev",
+    "vague-pronouns", "xref-defects",
+)
+# What the verdict counts. It leaves out front-loaded, first-person, and
+# section-refs, which are prompts to look rather than defects.
+SCORED_CATEGORIES = (
+    "em-dashes", "scare-quotes", "parentheses", "buzzwords", "wordy", "filler",
+    "passive", "hidden-verbs", "noun-stacks", "weak-abbrev", "vague-pronouns",
+    "xref-defects",
+)
+COUNT_KEYS = MECHANICAL_CATEGORIES + HEURISTIC_CATEGORIES + (
+    "first-person", "section-refs",
+)
+GATE_GROUPS = {
+    "mechanics": MECHANICAL_CATEGORIES,
+    "heuristics": HEURISTIC_CATEGORIES,
+    "any": SCORED_CATEGORIES,
+}
 
 # ---------------------------------------------------------------------------
 # Vocabulary tables
@@ -445,6 +483,13 @@ def find_parentheses(text):
         for m in PAREN_SPAN.finditer(line):
             inner = m.group(1).strip()
             if not inner or PAREN_REFERENCE.match(inner):
+                continue
+            # Markdown link target, "[label](url)". The parentheses belong to
+            # the link syntax, not to the prose.
+            if m.start() > 0 and line[m.start() - 1] == "]":
+                continue
+            if re.match(r"^(?:https?://|mailto:|#|\.{0,2}/|[\w.-]+\.(?:md|html|py|txt)\b)",
+                        inner):
                 continue
             words = re.findall(r"[A-Za-z][A-Za-z'\-]*", inner)
             # Abbreviation definition, spelled-out term, or proper name:
@@ -869,20 +914,65 @@ def find_cross_references(text):
 # ---------------------------------------------------------------------------
 
 def main():
-    args = list(sys.argv[1:])
-    # Check help before the option filter below strips it. Otherwise --help
-    # falls through to read_input(None), which blocks on stdin.
-    if "-h" in args or "--help" in args:
+    argv = list(sys.argv[1:])
+    # Check help before anything else. Otherwise --help reaches
+    # read_input(None), which blocks on stdin.
+    if "-h" in argv or "--help" in argv:
         print(__doc__)
-        return
-    quiet = "--quiet" in args
-    args = [a for a in args if not a.startswith("--")]
-    arg = args[0] if args else None
+        return 0
+
+    quiet = False
+    as_json = False
+    fail_on = None
+    positional = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--quiet":
+            quiet = True
+        elif a == "--json":
+            as_json = True
+        elif a == "--fail-on":
+            i += 1
+            if i >= len(argv):
+                print("--fail-on needs a value", file=sys.stderr)
+                return 2
+            fail_on = argv[i]
+        elif a.startswith("--fail-on="):
+            fail_on = a.split("=", 1)[1]
+        elif a.startswith("-") and a != "-":
+            print("unknown option: " + a, file=sys.stderr)
+            print("run with --help for usage", file=sys.stderr)
+            return 2
+        else:
+            positional.append(a)
+        i += 1
+    arg = positional[0] if positional else None
+
+    gates = []
+    if fail_on is not None:
+        for name in fail_on.replace(" ", "").split(","):
+            if not name:
+                continue
+            if name in GATE_GROUPS:
+                gates.extend(GATE_GROUPS[name])
+            elif name in COUNT_KEYS:
+                gates.append(name)
+            else:
+                print("unknown --fail-on category: " + name, file=sys.stderr)
+                print("groups: " + ", ".join(sorted(GATE_GROUPS)), file=sys.stderr)
+                print("categories: " + ", ".join(COUNT_KEYS), file=sys.stderr)
+                return 2
 
     raw = read_input(arg)
     if not raw.strip():
-        print("No text to check.")
-        return
+        if as_json:
+            print(json.dumps({"file": arg or "<stdin>", "verdict": "empty",
+                              "counts": {k: 0 for k in COUNT_KEYS},
+                              "findings": {}}, indent=2))
+        else:
+            print("No text to check.")
+        return 0
 
     prose = strip_code(raw)
     sentences = split_sentences(prose)
@@ -928,6 +1018,103 @@ def main():
     known_once = sorted(a for a, n in abbr_counts.items()
                         if n == 1 and a in WELL_KNOWN_ABBREV)
     big_stacks = [h for h in stacks if h[0] >= 4]
+
+    xref_defects = len(fwd_refs) + len(vague_ptrs) + len(vague_support)
+    counts = {
+        "em-dashes": len(em),
+        "scare-quotes": len(scare),
+        "parentheses": len(paren),
+        "buzzwords": total_bz,
+        "wordy": total_wd,
+        "filler": total_fl,
+        "front-loaded": len(front),
+        "passive": len(passives),
+        "hidden-verbs": len(hidden),
+        "noun-stacks": len(big_stacks),
+        "weak-abbrev": len(wasteful) + len(spell_out),
+        "vague-pronouns": len(vague),
+        "first-person": fp,
+        "xref-defects": xref_defects,
+        "section-refs": len(sec_refs),
+    }
+    problems = sum(counts[k] for k in SCORED_CATEGORIES)
+    failed = sorted({g for g in gates if counts.get(g, 0) > 0})
+    exit_code = 1 if failed else 0
+
+    if as_json:
+        mean = statistics.mean(lengths) if lengths else 0.0
+        cv = (statistics.pstdev(lengths) / mean) if len(lengths) >= 2 and mean else 0.0
+        print(json.dumps({
+            "file": arg if arg and arg != "-" else "<stdin>",
+            "verdict": "clean" if problems == 0 else "needs-work",
+            "scored_total": problems,
+            "counts": counts,
+            "totals": {
+                "mechanics": sum(counts[k] for k in MECHANICAL_CATEGORIES),
+                "heuristics": sum(counts[k] for k in HEURISTIC_CATEGORIES),
+            },
+            "gate": {
+                "requested": gates,
+                "failed": failed,
+                "exit_code": exit_code,
+            },
+            "sentences": {
+                "count": len(lengths),
+                "mean_words": round(mean, 1),
+                "longest_words": max(lengths) if lengths else 0,
+                "variation_cv": round(cv, 2),
+                "over_25_words": sum(1 for n in lengths if n > 25),
+                "over_30_words": sum(1 for n in lengths if n > 30),
+                "rule_of_three_lists": r3,
+                "heavy_comma_sentences": len(heavy),
+            },
+            "tense": {"present": pres, "past": past, "future": fut},
+            "abbreviations": {
+                "wasteful": wasteful,
+                "spell_out": spell_out,
+                "introduce": introduce,
+                "well_known_once": known_once,
+            },
+            "findings": {
+                "em-dashes": [{"line": ln, "kind": k, "text": t}
+                              for ln, k, t in em],
+                "scare-quotes": [{"line": ln, "reason": k, "text": t}
+                                 for ln, k, t in scare],
+                "literal-quotes": [{"line": ln, "text": t} for ln, t in litq],
+                "parentheses": [{"line": ln, "kind": k, "text": t}
+                                for ln, k, t in paren],
+                "buzzwords": [{"word": w, "count": n, "suggestion": s}
+                              for w, (n, s) in sorted(bz.items())],
+                "wordy": [{"phrase": w, "count": n, "suggestion": s}
+                          for w, (n, s) in sorted(wd.items())],
+                "filler": [{"phrase": w, "count": n}
+                           for w, n in sorted(fl.items())],
+                "front-loaded": [{"words_before_break": n, "text": t}
+                                 for n, t in front],
+                "passive": [{"match": m, "text": t} for m, t in passives],
+                "hidden-verbs": [{"phrase": w, "suggestion": s}
+                                 for w, s in hidden],
+                "noun-stacks": [{"nouns": n, "text": t, "likely_defect": n >= 4}
+                                for n, t in stacks],
+                "pronouns": [{"kind": k, "text": t} for k, t in vague],
+                "section-refs": [{"line": ln, "name": n} for ln, n in sec_refs],
+                "forward-refs": [{"line": ln, "what": w, "text": t}
+                                 for ln, w, t in fwd_refs],
+                "vague-pointers": [{"line": ln, "what": w, "text": t}
+                                   for ln, w, t in vague_ptrs],
+                "vague-support-refs": [{"line": ln, "what": w, "text": t}
+                                       for ln, w, t in vague_support],
+            },
+            "notes": {
+                "heuristic_categories": list(HEURISTIC_CATEGORIES),
+                "guidance": ("Checks for passive voice, noun stacks, tense, and "
+                             "cross-references are heuristic and produce false "
+                             "positives. Judge each finding. A clean report is a "
+                             "floor, not proof the prose is good."),
+                "numbered_headings_found": has_headings,
+            },
+        }, indent=2))
+        return exit_code
 
     if not quiet:
         print("=" * 68)
@@ -1124,11 +1311,6 @@ def main():
 
         print("\n" + "=" * 68)
 
-    xref_defects = len(fwd_refs) + len(vague_ptrs) + len(vague_support)
-    problems = (len(em) + len(scare) + len(paren) + total_bz + total_wd
-                + total_fl + len(passives) + len(hidden) + len(big_stacks)
-                + len(wasteful) + len(spell_out) + len(vague)
-                + xref_defects)
     verdict = "CLEAN on mechanics" if problems == 0 else "needs work"
     print(f"SUMMARY: {verdict}.  em-dashes={len(em)} scare-quotes={len(scare)} "
           f"parentheses={len(paren)} buzzwords={total_bz} wordy={total_wd} "
@@ -1142,6 +1324,9 @@ def main():
     if not quiet:
         print("A clean report is a floor, not proof the prose is good.")
         print("=" * 68)
+    if failed:
+        print("FAILED on: " + ", ".join(failed), file=sys.stderr)
+    return exit_code
 
 
 if __name__ == "__main__":
@@ -1150,4 +1335,4 @@ if __name__ == "__main__":
         signal.signal(signal.SIGPIPE, signal.SIG_DFL)
     except (ImportError, AttributeError, ValueError):
         pass
-    main()
+    sys.exit(main())

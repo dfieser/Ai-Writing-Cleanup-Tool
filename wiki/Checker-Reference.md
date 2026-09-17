@@ -12,13 +12,21 @@ python3 skills/ai-writing-cleanup/scripts/check_writing.py draft.md --quiet
 
 The script needs Python 3.9 or later and imports only the standard library.
 `--quiet` prints the summary line by itself, which suits a pre-commit hook.
-`-h` and `--help` print the usage text.
+`--json` prints a parseable report for an agent or a script. `-h` and `--help`
+print the usage text.
 
-The script always exits 0, so a build gate has to read the summary:
+`--fail-on` turns the counts into an exit code:
 
 ```bash
-python3 .../check_writing.py doc.md --quiet | grep -q 'em-dashes=0' || exit 1
+python3 .../check_writing.py doc.md --quiet --fail-on mechanics
 ```
+
+It takes `mechanics`, `heuristics`, `any`, or a comma separated list of category
+names such as `em-dashes,buzzwords`. Exit 0 means the selected categories are
+clear, 1 means one is above zero and stderr names which, and 2 means bad usage.
+Without `--fail-on` the exit code is always 0.
+
+Gate on `mechanics` only. The `heuristics` group fails on correct prose.
 
 ## What the report covers
 

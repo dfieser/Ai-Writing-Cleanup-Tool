@@ -27,6 +27,21 @@ Scan a file without Claude:
 python3 skills/ai-writing-cleanup/scripts/check_writing.py draft.md
 ```
 
+## Handing this to an agent
+
+Point the agent at
+[AGENTS.md](https://github.com/dfieser/Ai-Writing-Cleanup-Tool/blob/HEAD/AGENTS.md).
+It holds four task recipes, the checker contract, the JSON keys, and the rules
+the agent must not break. No installation is needed for an editing pass, because
+`dist/ai-writing-cleanup.bundle.md` carries the whole ruleset in one file.
+
+To drop the repository into a workspace and let agents take over, unzip it there
+and run one command:
+
+```bash
+bash install.sh --into /path/to/workspace
+```
+
 ## Pages
 
 - [The Rules](The-Rules) lists all 18 rules with examples, and maps each one to
