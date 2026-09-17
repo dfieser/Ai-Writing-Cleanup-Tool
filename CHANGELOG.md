@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.2.0
+
+### Changed
+
+- Rule 9 now turns on genre rather than treating every passive as a defect.
+  Active stays the default for procedures, manuals, work instructions, specs,
+  READMEs, release notes, reports, and proposals, where a dropped actor is a
+  safety problem. Academic engineering and science papers write Methods, and most
+  of Results, in the passive by convention, and the skill now leaves those alone.
+  The convention is sectional: an Introduction, Discussion, or Conclusions
+  section carries the authors' own claims and still reads active.
+- Three things stay defects in any genre: passive that hides an actor the reader
+  must act on, passive stacked until the sentence loses its subject, and
+  expletive passive such as `It was determined that`, which is a hidden verb in a
+  passive coat.
+- `references/tech-pub-rules.md` section 1 gained a genre table and a reordered
+  test. Ask the genre question first, then ask whether the reader needs to know
+  who acts.
+- The checker's advice for check 10 no longer says to convert every passive. It
+  names the genre split, and the `--json` guidance note says the same to an agent.
+- The frontmatter description, `README.md`, `AGENTS.md`, and the wiki rule table
+  all state the rule the same way.
+
+The detector itself is unchanged. It still reports every passive construction,
+because whether one is a defect depends on the document, which is a judgment the
+skill makes rather than a regular expression.
+
 ## 1.1.2
 
 ### Added

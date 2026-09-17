@@ -11,7 +11,7 @@
       "name": "ai-writing-cleanup",
       "source": "./",
       "description": "Edit technical writing so it is clear, direct, and reads like a knowledgeable person wrote it rather than a language model.",
-      "version": "1.1.2",
+      "version": "1.2.0",
       "license": "MIT",
       "keywords": [
         "writing",

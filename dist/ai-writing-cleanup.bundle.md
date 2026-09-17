@@ -87,7 +87,10 @@ common in model output, and it slows every reader.
 **Passive voice, rule 9.** Agentless passive is heavy in the formal writing
 models train on, and passive lets a sentence avoid naming an actor that the model
 has no stake in naming. In a procedure it is a safety defect on its own terms,
-because nobody is told who acts.
+because nobody is told who acts. Rule 9 is also the one rule a genre can
+overrule. A journal Methods section is passive by convention and stays that way,
+which is a call made once from the document type rather than a defect argued
+sentence by sentence.
 
 **Noun stacks and hidden verbs, rules 10 and 11.** Models compress clauses into
 noun phrases. That produces long premodifier chains and verbs buried inside
@@ -410,16 +413,38 @@ reader is often following a procedure under time pressure and any ambiguity cost
 real money. `references/tech-pub-rules.md` holds the detailed treatment, longer
 conversion tables, and edge cases; read it when a case here is not clear-cut.
 
-#### 9. Use active voice unless passive earns its place.
+#### 9. Match voice to the genre. Active by default, passive where the field writes that way.
 
-Active voice names the actor, so the reader knows who does what. Passive hides the
-actor, which in a procedure is dangerous: "the valve must be closed" never says
-who closes it. Active is also shorter.
+Identify what the document is before you touch a single verb. Voice is the one
+rule here that a genre can overrule, and getting it backwards damages the
+document in either direction.
 
-Rewrite passive to active whenever the actor is known or recoverable. Passive is
-legitimate in three cases: the actor is genuinely unknown, the actor is irrelevant
-to the reader, or the affected thing is the true subject of the sentence. Use it
-deliberately, not by default.
+**Default to active.** Active names the actor, so the reader knows who does what,
+and it runs shorter. Use it in manuals, procedures, work instructions, specs,
+READMEs, release notes, reports, and proposals. In a procedure a dropped actor is
+a safety defect rather than a style problem, because "the valve must be closed"
+never says who closes it. Write steps as imperatives.
+
+**Keep passive in academic engineering and science papers.** A journal Methods
+section is written in the passive by convention, and much of Results with it. Take
+"The specimens were annealed at 800 C for 2 h." The actor is the authors, every
+reader already knows that, and the sentence belongs to the specimens rather than
+to the people handling them. Rewriting it as "We annealed the specimens" fights
+the field, and some journals send it back. Leave it.
+
+The convention is sectional, not blanket. Introductions, Discussions, and
+Conclusions carry the authors' own claims, and those read active in most
+engineering journals. "This paper presents" and "We show that the coating fails
+by spalling" are correct there. Edit toward active in those sections.
+
+**What stays a defect in any genre.** Passive that hides an actor the reader has
+to act on. Passive stacked deep enough that the sentence loses its subject.
+Expletive passive such as "It was determined that", which is a hidden verb from
+rule 10 wearing a passive coat. Fix those anywhere they appear, a journal paper
+included.
+
+If the document type is not obvious, ask rather than guess. A lab report and a
+work instruction want opposite answers.
 
 Input: The configuration file is read by the loader at startup, and any invalid
 fields are logged.
@@ -428,6 +453,14 @@ fields.
 
 Input: The bolts must be torqued to 12 Nm.
 Output: Torque the bolts to 12 Nm.
+
+Input, from a journal Methods section: The samples were sectioned, mounted in
+epoxy, and polished to 1 um.
+Output: unchanged. This is the field's convention and the samples are the subject.
+
+Input, from a journal Discussion: It was determined by the authors that the
+coating failed by spalling.
+Output: The coating failed by spalling.
 
 #### 10. Free the hidden verbs.
 
@@ -1039,6 +1072,40 @@ that says "the circuit breaker must be opened" leaves a technician wondering
 whether they open it, another team opens it, or the system opens it
 automatically. Ambiguity in a procedure is a safety problem, not a style problem.
 
+#### Genre decides the default
+
+Voice is the one rule in this skill that the document type can overrule, so
+settle the type before editing any verbs.
+
+| Document | Default voice |
+|---|---|
+| Procedures, work instructions, manuals | Active, imperative for every step |
+| Specs, READMEs, release notes, runbooks | Active |
+| Reports and proposals | Active |
+| Journal paper: Methods, most of Results | Passive, by the field's convention |
+| Journal paper: Introduction, Discussion, Conclusions | Active |
+
+Academic engineering and science write Methods in the passive. "The specimens
+were annealed at 800 C for 2 h, then quenched in water." The actor is the
+authors, the reader knows it, and the sentence belongs to the specimens. That is
+not a defect to fix, and several journals will send back a Methods section
+rewritten into the first person. Leave it.
+
+The same paper turns active where the authors make their own claims. An
+Introduction saying "This paper presents a coating that resists spalling" and a
+Discussion saying "We attribute the loss to thermal cycling" are both correct.
+Edit toward active in those sections, and leave Methods alone.
+
+Three things stay defects in any genre, a journal paper included:
+
+1. Passive that hides an actor the reader has to act on.
+2. Passive stacked deep enough that the sentence loses its subject.
+3. Expletive passive such as "It was determined that" or "It was observed that",
+   which is a nominalization wearing a passive coat. Section 2 covers those.
+
+When the document type is not obvious, ask. A lab report and a work instruction
+want opposite answers, and guessing wrong damages the document either way.
+
 #### How to spot it
 
 Look for a form of "to be" (is, are, was, were, be, been, being) or "get"
@@ -1047,6 +1114,8 @@ verified," "gets triggered." If you can append "by the ..." and the sentence sti
 works, it is passive.
 
 #### How to convert it
+
+This applies where active is the default. In a journal Methods section, skip it.
 
 Find the real actor and make it the subject. If the actor is missing entirely,
 recover it from context. If the sentence is an instruction, use the imperative,
@@ -1063,14 +1132,16 @@ which is the most direct form available.
 
 #### When passive is correct
 
-Keep passive in three situations. First, when the actor is genuinely unknown:
-"The connector was damaged in shipping." Second, when the actor is irrelevant to
-the reader and naming it adds noise: "The unit is manufactured in Ohio." Third,
-when the affected object is the real topic of the sentence and the paragraph
-follows that object: "The filter is replaced every 500 hours. It is then
-discarded."
+Keep passive in four situations. First, when the field writes that way, which
+covers Methods and most of Results in an academic engineering or science paper.
+Second, when the actor is genuinely unknown: "The connector was damaged in
+shipping." Third, when the actor is irrelevant to the reader and naming it adds
+noise: "The unit is manufactured in Ohio." Fourth, when the affected object is
+the real topic of the sentence and the paragraph follows that object: "The filter
+is replaced every 500 hours. It is then discarded."
 
-The test is whether the reader needs to know who acts. If yes, use active.
+Two tests, in order. Does the genre call for passive here? If yes, keep it. If
+no, does the reader need to know who acts? If yes, use active.
 
 ---
 

@@ -7,7 +7,8 @@ description: >-
   like ChatGPT" or "sounds robotic/generic," or wants an editing pass on
   technical documents, technical publications, manuals, procedures, work
   instructions, specs, READMEs, release notes, reports, papers, or proposals. Removes em
-  dashes, scare quotes, every parenthesis that is not required, buzzwords, filler, passive voice,
+  dashes, scare quotes, every parenthesis that is not required, buzzwords, filler,
+  passive voice outside the genres that use it,
   hidden verbs, noun stacks, front-loaded and uniform-length sentences, vague
   pronouns, and needless abbreviations, and
   fixes comma errors and tense drift, tightens cross-references, standardizes nomenclature, and pitches the level
@@ -64,7 +65,10 @@ common in model output, and it slows every reader.
 **Passive voice, rule 9.** Agentless passive is heavy in the formal writing
 models train on, and passive lets a sentence avoid naming an actor that the model
 has no stake in naming. In a procedure it is a safety defect on its own terms,
-because nobody is told who acts.
+because nobody is told who acts. Rule 9 is also the one rule a genre can
+overrule. A journal Methods section is passive by convention and stays that way,
+which is a call made once from the document type rather than a defect argued
+sentence by sentence.
 
 **Noun stacks and hidden verbs, rules 10 and 11.** Models compress clauses into
 noun phrases. That produces long premodifier chains and verbs buried inside
@@ -387,16 +391,38 @@ reader is often following a procedure under time pressure and any ambiguity cost
 real money. `references/tech-pub-rules.md` holds the detailed treatment, longer
 conversion tables, and edge cases; read it when a case here is not clear-cut.
 
-### 9. Use active voice unless passive earns its place.
+### 9. Match voice to the genre. Active by default, passive where the field writes that way.
 
-Active voice names the actor, so the reader knows who does what. Passive hides the
-actor, which in a procedure is dangerous: "the valve must be closed" never says
-who closes it. Active is also shorter.
+Identify what the document is before you touch a single verb. Voice is the one
+rule here that a genre can overrule, and getting it backwards damages the
+document in either direction.
 
-Rewrite passive to active whenever the actor is known or recoverable. Passive is
-legitimate in three cases: the actor is genuinely unknown, the actor is irrelevant
-to the reader, or the affected thing is the true subject of the sentence. Use it
-deliberately, not by default.
+**Default to active.** Active names the actor, so the reader knows who does what,
+and it runs shorter. Use it in manuals, procedures, work instructions, specs,
+READMEs, release notes, reports, and proposals. In a procedure a dropped actor is
+a safety defect rather than a style problem, because "the valve must be closed"
+never says who closes it. Write steps as imperatives.
+
+**Keep passive in academic engineering and science papers.** A journal Methods
+section is written in the passive by convention, and much of Results with it. Take
+"The specimens were annealed at 800 C for 2 h." The actor is the authors, every
+reader already knows that, and the sentence belongs to the specimens rather than
+to the people handling them. Rewriting it as "We annealed the specimens" fights
+the field, and some journals send it back. Leave it.
+
+The convention is sectional, not blanket. Introductions, Discussions, and
+Conclusions carry the authors' own claims, and those read active in most
+engineering journals. "This paper presents" and "We show that the coating fails
+by spalling" are correct there. Edit toward active in those sections.
+
+**What stays a defect in any genre.** Passive that hides an actor the reader has
+to act on. Passive stacked deep enough that the sentence loses its subject.
+Expletive passive such as "It was determined that", which is a hidden verb from
+rule 10 wearing a passive coat. Fix those anywhere they appear, a journal paper
+included.
+
+If the document type is not obvious, ask rather than guess. A lab report and a
+work instruction want opposite answers.
 
 Input: The configuration file is read by the loader at startup, and any invalid
 fields are logged.
@@ -405,6 +431,14 @@ fields.
 
 Input: The bolts must be torqued to 12 Nm.
 Output: Torque the bolts to 12 Nm.
+
+Input, from a journal Methods section: The samples were sectioned, mounted in
+epoxy, and polished to 1 um.
+Output: unchanged. This is the field's convention and the samples are the subject.
+
+Input, from a journal Discussion: It was determined by the authors that the
+coating failed by spalling.
+Output: The coating failed by spalling.
 
 ### 10. Free the hidden verbs.
 

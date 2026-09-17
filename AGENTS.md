@@ -137,10 +137,15 @@ literal output are data. The checker already skips them.
 voice, noun stacks, tense, and cross-references produce false positives on verb
 phrases and established terms, so decide case by case whether a given flag is a
 true hit. That judgment applies to one flag, never to a rule. Every rule in the
-skill is in scope, and passive voice, hidden verbs, noun stacks, front-loaded
-sentences, and uniform sentence length are all part of the cleanup. Do not skip
-one because the pattern also turns up in human writing. A clean report is a
-floor, not proof the prose is good.
+skill is in scope, and hidden verbs, noun stacks, front-loaded sentences, and
+uniform sentence length are all part of the cleanup. Do not skip one because the
+pattern also turns up in human writing.
+
+Voice is the one exception, and it turns on genre rather than on the sentence.
+Active is the default for procedures, manuals, specs, READMEs, and reports. A
+journal Methods section, and most of Results, is passive by the field's
+convention, so its passive hits are not defects. Settle the document type first,
+then edit. A clean report is a floor, not proof the prose is good.
 
 ## Working on this repository rather than with it
 

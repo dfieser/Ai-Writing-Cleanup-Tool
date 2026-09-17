@@ -1110,7 +1110,10 @@ def main():
                 "guidance": ("Checks for passive voice, noun stacks, tense, and "
                              "cross-references are heuristic and produce false "
                              "positives. Judge each finding. A clean report is a "
-                             "floor, not proof the prose is good."),
+                             "floor, not proof the prose is good. Passive voice "
+                             "is genre-dependent: active is the default, but a "
+                             "journal Methods or Results section is passive by "
+                             "convention and its hits are not defects."),
                 "numbered_headings_found": has_headings,
             },
         }, indent=2))
@@ -1209,8 +1212,10 @@ def main():
         for phrase, snip in passives[:12]:
             print(f"    \"{phrase}\": {snip}")
         if passives:
-            print("    -> name the actor and use active voice, unless the actor is")
-            print("       genuinely unknown or irrelevant.")
+            print("    -> genre decides. In procedures, manuals, specs, and")
+            print("       READMEs, name the actor and use active voice. In a")
+            print("       journal Methods or Results section, passive is the")
+            print("       field's convention: leave it.")
         else:
             print("    none flagged.")
 

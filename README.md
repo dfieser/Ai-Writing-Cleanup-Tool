@@ -40,7 +40,7 @@ Part 1 of the skill removes the machine texture:
 
 Part 2 applies technical-writing discipline:
 
-- passive voice where a real actor exists
+- passive voice outside the genres that use it, such as a journal Methods section
 - hidden verbs, such as `perform an inspection of` for `inspect`
 - noun stacks such as `retry configuration file parser validation logic`
 - `this` and `it` with no clear referent

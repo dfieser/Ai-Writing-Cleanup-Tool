@@ -41,7 +41,7 @@ Gate on `mechanics` only. The `heuristics` group fails on correct prose.
 | 7 | Sentence length | Mean, longest, and the coefficient of variation |
 | 8 | Comma lists | Sentences heavy with commas, and rule-of-three lists |
 | 9 | Front-loaded sentences | The point delayed behind a long opening clause |
-| 10 | Passive voice | A passive construction where an actor exists |
+| 10 | Passive voice | A passive construction. Whether it is a defect turns on genre |
 | 11 | Hidden verbs | An action buried in a noun with a weak helper verb |
 | 12 | Noun stacks | Three or more nouns in a row, with four or more called likely defects |
 | 13 | Abbreviations | Short forms that cost more than they save |

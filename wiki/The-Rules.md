@@ -25,7 +25,7 @@ Rules with no check need judgment, so no regular expression can catch them.
 
 | # | Rule | Check |
 | --- | --- | --- |
-| 9 | Use active voice unless passive earns its place. | 10 |
+| 9 | Match voice to the genre. Active by default, passive where the field writes that way. | 10 |
 | 10 | Free the hidden verbs. | 11 |
 | 11 | Break up noun stacks. | 12 |
 | 12 | Name the thing instead of using a pronoun. | 14 |
