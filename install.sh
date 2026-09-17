@@ -70,6 +70,9 @@ if [ "$mode" = "link" ]; then
   echo "linked $DEST -> $SRC"
 else
   cp -R "$SRC" "$DEST"
+  # Drop build cruft that cp -R picks up from a source tree someone has run.
+  find "$DEST" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+  find "$DEST" -name '*.py[co]' -delete 2>/dev/null || true
   echo "installed $DEST"
 fi
 

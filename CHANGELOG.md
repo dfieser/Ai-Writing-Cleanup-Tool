@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1
+
+### Fixed
+
+- `install.sh` copied `__pycache__` directories and compiled `.pyc` files into
+  the installed skill. Anyone who ran the checker from a clone before installing
+  carried that cruft across. The copy now prunes it.
+
 ## 1.2.0
 
 ### Changed
