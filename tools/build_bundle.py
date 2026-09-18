@@ -32,10 +32,6 @@ One file holding every rule from the ai-writing-cleanup skill. It exists for an
 agent that cannot load a skill directory and needs the whole ruleset in a single
 read.
 
-**You are reading the current copy.** If `scripts/update.py` sent you here, that
-fetch is done. Step 1 of the workflow below is already satisfied, so start at
-step 2 and do not run the updater again.
-
 **How to use this file.** Read all of it, then edit the target document against
 it. Rules 1 through 8 remove the texture of machine writing. Rules 9 through 18
 apply technical-writing discipline. The reference sections at the end hold the

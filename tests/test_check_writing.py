@@ -6,7 +6,6 @@ Run them with:
 
 import importlib.util
 import json
-import os
 import pathlib
 import subprocess
 import sys
@@ -413,112 +412,6 @@ class ReleasePackage(unittest.TestCase):
         for entry in listed:
             self.assertNotIn("__pycache__", entry)
             self.assertFalse(entry.endswith(".pyc"))
-
-
-UPDATER = REPO / "skills" / "ai-writing-cleanup" / "scripts" / "update.py"
-
-
-def load_updater():
-    spec = importlib.util.spec_from_file_location("aw_update", UPDATER)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-class UpdaterGuards(unittest.TestCase):
-    """What comes off the network is checked before it is trusted."""
-
-    def setUp(self):
-        self.up = load_updater()
-        self.rules = self.up.ARTIFACTS["rules"]
-        self.checker = self.up.ARTIFACTS["checker"]
-
-    def test_real_bundle_is_accepted(self):
-        text = (REPO / "dist" / "ai-writing-cleanup.bundle.md").read_text(encoding="utf-8")
-        self.assertIsNone(self.up.trustworthy(text, self.rules))
-
-    def test_real_checker_is_accepted(self):
-        text = SCRIPT.read_text(encoding="utf-8")
-        self.assertIsNone(self.up.trustworthy(text, self.checker))
-
-    def test_error_page_is_rejected(self):
-        self.assertIsNotNone(self.up.trustworthy("<html>404 Not Found</html>", self.rules))
-
-    def test_truncated_download_is_rejected(self):
-        text = (REPO / "dist" / "ai-writing-cleanup.bundle.md").read_text(
-            encoding="utf-8")[:500]
-        self.assertIn("too small", self.up.trustworthy(text, self.rules))
-
-    def test_right_size_wrong_content_is_rejected(self):
-        self.assertIn("missing expected content",
-                      self.up.trustworthy("x" * 20000, self.rules))
-
-    def test_broken_python_is_rejected(self):
-        text = SCRIPT.read_text(encoding="utf-8") + "\ndef (((:\n"
-        self.assertIn("does not parse", self.up.trustworthy(text, self.checker))
-
-    def test_non_https_source_is_refused(self):
-        done = subprocess.run(
-            [sys.executable, str(UPDATER), "--force"],
-            env={**os.environ, "AI_WRITING_CLEANUP_RAW": "http://example.com"},
-            capture_output=True, text=True, timeout=30)
-        self.assertIn("non-HTTPS", done.stdout + done.stderr)
-
-    def test_version_is_read_from_each_artifact(self):
-        self.assertEqual(self.up.version_of('__version__ = "9.9.9"'), "9.9.9")
-        self.assertEqual(self.up.version_of("# Title\n\nVersion 9.9.9.\n"), "9.9.9")
-        self.assertEqual(self.up.version_of("---\nname: x\nversion: 9.9.9\n"), "9.9.9")
-        self.assertEqual(self.up.version_of("nothing here"), "unknown")
-
-
-class UpdaterNeverBlocks(unittest.TestCase):
-    """A failed fetch must never stop an edit."""
-
-    def run_updater(self, *args, **env):
-        return subprocess.run(
-            [sys.executable, str(UPDATER), *args],
-            env={**os.environ, **env}, capture_output=True, text=True, timeout=60)
-
-    def test_offline_succeeds_without_network(self):
-        done = self.run_updater("--offline")
-        self.assertEqual(done.returncode, 0)
-        self.assertIn("rules", done.stdout)
-
-    def test_unreachable_source_still_exits_zero(self):
-        done = self.run_updater(
-            "--force",
-            AI_WRITING_CLEANUP_RAW="https://raw.githubusercontent.com/dfieser/no-such-repo-xyz/HEAD")
-        self.assertEqual(done.returncode, 0)
-        self.assertIn("shipped copy", done.stdout + done.stderr)
-
-    def test_falls_back_to_a_real_readable_file(self):
-        done = self.run_updater(
-            "--force", "--json",
-            AI_WRITING_CLEANUP_RAW="https://raw.githubusercontent.com/dfieser/no-such-repo-xyz/HEAD")
-        for info in json.loads(done.stdout)["artifacts"].values():
-            self.assertTrue(pathlib.Path(info["path"]).is_file(), info["path"])
-
-    def test_status_reports_without_fetching(self):
-        done = self.run_updater("--status", "--json")
-        self.assertEqual(done.returncode, 0)
-        self.assertIn("artifacts", json.loads(done.stdout))
-
-    def test_help_does_not_hang(self):
-        done = subprocess.run([sys.executable, str(UPDATER), "--help"],
-                              stdin=subprocess.DEVNULL, capture_output=True,
-                              text=True, timeout=10)
-        self.assertEqual(done.returncode, 0)
-
-
-class BundleAvoidsFetchLoop(unittest.TestCase):
-    def test_bundle_tells_the_reader_the_fetch_is_done(self):
-        text = (REPO / "dist" / "ai-writing-cleanup.bundle.md").read_text(encoding="utf-8")
-        self.assertIn("do not run the updater again", text)
-
-    def test_skill_names_the_updater_as_step_one(self):
-        text = (REPO / "skills" / "ai-writing-cleanup" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("scripts/update.py", text)
-        self.assertIn("Get the current rules", text)
 
 
 if __name__ == "__main__":

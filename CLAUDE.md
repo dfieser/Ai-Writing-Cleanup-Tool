@@ -10,10 +10,6 @@ inside this repository.
   `references/` hold the detail behind them.
 - `skills/ai-writing-cleanup/scripts/check_writing.py` is the checker. It reports
   and never rewrites. Stdlib only, Python 3.9 or later.
-- `skills/ai-writing-cleanup/scripts/update.py` fetches the current ruleset and
-  checker from GitHub so an installed copy follows the repository. Step 1 of the
-  skill's workflow runs it. Editing `SKILL.md` or a reference file and pushing is
-  enough to reach every installed copy, with no reinstall.
 - `dist/ai-writing-cleanup.bundle.md` is the whole ruleset in one file, generated
   by `tools/build_bundle.py`.
 - `wiki/` holds the GitHub wiki pages. The `publish wiki` workflow pushes them

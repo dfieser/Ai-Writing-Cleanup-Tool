@@ -5,13 +5,6 @@ person wrote it rather than a language model. It strips the tells of machine
 prose and applies ordinary technical-writing discipline. It changes no technical
 fact.
 
-> **The installed skill updates itself.** Step 1 of the workflow runs
-> `scripts/update.py`, which pulls the current ruleset and checker from this
-> repository and caches them for an hour. Push a change here and every installed
-> copy picks it up on its next run, with no reinstall and no re-upload. It falls
-> back to its cache, then to the files it shipped with, so a missing network
-> never blocks an edit. See [Self-updating](#self-updating) for the trust model.
-
 > **Handing this to an agent?** Point it at [AGENTS.md](AGENTS.md), which holds
 > the task recipes, the checker contract, and the rules it must not break. An
 > agent needs no installation to use the skill. It reads
@@ -212,7 +205,7 @@ skills/
   ai-writing-cleanup/
     SKILL.md          the 18 rules
     references/       detailed reference material
-    scripts/          check_writing.py and update.py
+    scripts/          check_writing.py
 tests/                unit tests for the checker
 tools/build_bundle.py regenerates the one-file ruleset
 tools/build_release.py builds the zip you upload to an account
@@ -222,47 +215,6 @@ install.sh            installer
 publish-wiki.sh       pushes wiki/ to the GitHub wiki from a terminal
 .github/workflows/    tests, the documentation gate, and the wiki publisher
 ```
-
-## Self-updating
-
-The skill folder a harness loads can be old. Step 1 of the workflow runs:
-
-```bash
-python3 scripts/update.py
-```
-
-It fetches `dist/ai-writing-cleanup.bundle.md` and `scripts/check_writing.py`
-from this repository, caches them under `~/.cache/ai-writing-cleanup`, and prints
-where they landed. The reader follows the fetched rules in preference to the
-SKILL.md it loaded. So a push here reaches every installed copy on its next run.
-
-| Flag | Effect |
-| --- | --- |
-| none | Fetch when the cache is older than an hour, then print paths |
-| `--force` | Ignore the cache |
-| `--status` | Say what is cached, fetch nothing |
-| `--offline` | Use the cache or the shipped copy, touch no network |
-| `--json` | The same output, machine readable |
-
-It never blocks an edit. A failed fetch falls back to the cache, and a missing
-cache falls back to the files beside the script. It exits 0 in every case.
-
-Before trusting a download it checks that the transfer came over HTTPS, is large
-enough to be the real file, contains the markers that file should contain, and,
-for the checker, parses as Python. That catches an error page, a captive portal,
-and a truncated transfer.
-
-### What you are trusting
-
-The updater runs Python fetched from this repository. Anyone who can push here
-can change both the rules the skill applies and the code it runs on your machine.
-That is the same bargain any self-updating tool offers, and it is worth stating
-plainly rather than burying.
-
-Two ways to change it. Set `AI_WRITING_CLEANUP_RAW` to your own fork's raw URL to
-follow that instead. Set `AI_WRITING_CLEANUP_TTL` to change the cache lifetime,
-and pass `--offline`, or tell the agent to work offline, to switch fetching off
-for a run.
 
 ## Updating an account copy
 

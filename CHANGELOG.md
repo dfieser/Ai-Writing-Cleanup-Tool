@@ -1,42 +1,41 @@
 # Changelog
 
-## 1.4.0
+## 1.5.0
 
-The installed skill now follows the repository. Push a change here and every
-installed copy picks it up on its next run, with no reinstall and no re-upload.
+Removed the self-updating fetch added in 1.4.0. The skill is a fixed folder
+again, and a new version reaches an installed copy by being installed.
 
-### Added
+### Removed
 
-- `skills/ai-writing-cleanup/scripts/update.py`. It fetches the ruleset and the
-  checker from this repository, caches them under `~/.cache/ai-writing-cleanup`
-  for an hour, and prints where they landed.
-- Step 1 of the skill's workflow runs it and says to follow the fetched rules in
-  preference to the loaded SKILL.md. The remaining steps renumbered.
-- The generated bundle opens by telling a reader that the fetch is already done,
-  so following it cannot loop back into the updater.
+- `skills/ai-writing-cleanup/scripts/update.py`.
+- Step 1 of the workflow, which fetched the ruleset before editing. The workflow
+  is five steps again, starting by reading the document.
+- The paragraph in the generated bundle telling a reader the fetch was done.
+- The tests covering the fetch, its download guards, and its fallbacks.
 
-### How it fails
+### Why
 
-Never in a way that blocks an edit. A failed fetch falls back to the cache, and a
-missing cache falls back to the files shipped beside the script. The exit code is
-0 in every case. `--offline` skips the network, `--status` reports without
-fetching, and `--force` ignores the cache.
+Two reasons, and the first is the one that decided it.
 
-Before trusting a download it requires HTTPS, a plausible size, the markers that
-file should contain, and, for the checker, that the Python parses. That catches
-an error page, a captive portal, and a truncated transfer.
+The mechanism was never proved end to end. Fetching worked, and the guards and
+fallbacks worked, but the step that matters was never demonstrated: a fresh
+session in another workspace following the fetched rules in preference to the
+SKILL.md its harness had already loaded. That depends on harness behavior this
+repository does not control.
 
-### What you are trusting
+It also could not bootstrap itself. An installed copy has to already contain the
+fetch step before it can fetch anything, and installing a copy is exactly the
+manual step the feature was meant to remove. A copy old enough to need the
+update is the copy least able to get it.
 
-This runs Python fetched from the repository. Anyone who can push here can change
-both the rules the skill applies and the code it runs. That is the bargain any
-self-updating tool makes, and 1.3.0 argued against taking it. The deciding
-argument was practical: the skill is edited often, and re-uploading a zip after
-every edit was not going to happen, so the copies would drift instead. Drift is
-the worse failure. `AI_WRITING_CLEANUP_RAW` points the updater at a fork,
-`AI_WRITING_CLEANUP_TTL` changes the cache lifetime.
+Unproven machinery in an editing tool is worse than a manual step that works.
 
-This supersedes the `Deliberately not added` note in 1.3.0.
+### Kept
+
+The version stamping from 1.3.0 stays, because telling copies apart is useful
+whether or not they update themselves. `--version` on the checker, the `version`
+field in the SKILL.md frontmatter, `tools/sync_version.py`, and
+`tools/build_release.py` are all unchanged.
 
 ## 1.3.0
 
@@ -68,11 +67,6 @@ would also put a network call on the path of every edit, in a tool that is
 otherwise offline and stdlib only, and an instruction to fetch and follow remote
 content is a poor thing to bake into a skill. Stamping the version solves the
 part that was actually broken, which was telling copies apart.
-
-Reversed in 1.4.0. The objection about a skill not updating itself was right, and
-the answer was to fetch the rules rather than the folder. The objection about
-trusting remote content still stands, and 1.4.0 states it plainly instead of
-pretending it went away.
 
 ## 1.2.1
 

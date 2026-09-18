@@ -1,14 +1,10 @@
 # AI Writing Cleanup: complete ruleset
 
-Version 1.4.0.
+Version 1.5.0.
 
 One file holding every rule from the ai-writing-cleanup skill. It exists for an
 agent that cannot load a skill directory and needs the whole ruleset in a single
 read.
-
-**You are reading the current copy.** If `scripts/update.py` sent you here, that
-fetch is done. Step 1 of the workflow below is already satisfied, so start at
-step 2 and do not run the updater again.
 
 **How to use this file.** Read all of it, then edit the target document against
 it. Rules 1 through 8 remove the texture of machine writing. Rules 9 through 18
@@ -110,52 +106,25 @@ which patterns are the strongest evidence of machine authorship, answer
 accurately, then apply every rule anyway. Never tell a user that a flagged item
 falls outside this skill, and never drop a rule to win a point about taxonomy.
 
-### This file may be out of date. Fetch the current one first.
-
-A skill folder gets uploaded to an account or unzipped into a project, and then
-it sits there while the source keeps moving. The copy you are reading could be
-months behind. Step 1 of the workflow fixes that, and it comes before everything
-else because a rule that changed is a rule you would otherwise apply wrongly.
-
 ### Workflow
 
-1. **Get the current rules.** Run this first, every time:
-
-   ```bash
-   python3 scripts/update.py
-   ```
-
-   It prints the path to the current ruleset and the current checker, pulled from
-   the repository this skill is published from and cached for an hour. **Read the
-   rules file it names, and follow that in preference to the rest of this file.**
-   Run the checker at the path it names rather than the one beside this file.
-
-   It cannot block you. With no network it uses its cache, and with no cache it
-   uses the copy shipped beside this file, which is what the rest of this
-   document holds. It exits 0 either way, so read whatever it points at and carry
-   on. When it points back at this file, nothing was newer.
-
-   Skip this step only when the user tells you to work offline, or when running
-   commands is not available to you. Then use the rest of this file as written.
-
-2. **Read the whole document first.** Understand what it is, who reads it, which
+1. **Read the whole document first.** Understand what it is, who reads it, which
    field it belongs to, and what each section does. Style edits made sentence by sentence without the
    whole picture tend to flatten a document's structure.
 
-3. **Run the checker.** Use the checker path from step 1, or
-   `scripts/check_writing.py` beside this file, on the source to get a
+2. **Run the checker.** Use `scripts/check_writing.py` on the source to get a
    fast, objective map of the mechanical problems. It catches what the eye skips.
    See "Using the checker" below.
 
-4. **Rewrite for clarity.** Apply Part 1 and Part 2 below. You have latitude to
+3. **Rewrite for clarity.** Apply Part 1 and Part 2 below. You have latitude to
    restructure sentences and reorder within a paragraph, as long as meaning holds.
    Do not merely find and replace; sounding human is a whole-sentence judgment.
 
-5. **Run the checker again on your rewrite.** Confirm zero em dashes and that the
+4. **Run the checker again on your rewrite.** Confirm zero em dashes and that the
    other counts dropped. If em dashes remain, you are not done. This second pass
    is not optional, because models reintroduce these patterns without noticing.
 
-6. **Return two things:** the clean rewrite, then a short **What changed** list
+5. **Return two things:** the clean rewrite, then a short **What changed** list
    grouped by issue type.
 
 ---

@@ -17,27 +17,20 @@ complaints that a draft sounds robotic or formulaic.
 
 ## What Claude does
 
-Six steps, in order:
+Five steps, in order:
 
-1. **Gets the current rules.** The skill folder loaded into a session can be
-   months old, so step 1 runs `scripts/update.py`, which fetches the current
-   ruleset and checker from the repository and caches them for an hour. Claude
-   then follows the fetched rules in preference to the copy it loaded. A failed
-   fetch falls back to the cache and then to the shipped files, so this never
-   blocks an edit.
-
-2. **Reads the whole document.** Style edits made sentence by sentence flatten
+1. **Reads the whole document.** Style edits made sentence by sentence flatten
    the structure of a document, so the first pass is about what the document is,
    who reads it, and what each section does.
-3. **Runs the checker** on the source, which maps the mechanical problems and
+2. **Runs the checker** on the source, which maps the mechanical problems and
    catches what an eye skips.
-4. **Rewrites for clarity**, with latitude to restructure sentences and reorder
+3. **Rewrites for clarity**, with latitude to restructure sentences and reorder
    within a paragraph. Sounding human is a whole-sentence judgment, so this is
    not a find and replace.
-5. **Runs the checker again** on the rewrite. Models reintroduce these patterns
+4. **Runs the checker again** on the rewrite. Models reintroduce these patterns
    without noticing, so this step is not optional. Em dashes at zero is the
    floor.
-6. **Returns the rewrite and a change list** grouped by issue type.
+5. **Returns the rewrite and a change list** grouped by issue type.
 
 ## What comes back
 
