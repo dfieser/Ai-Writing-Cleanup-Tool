@@ -41,7 +41,7 @@ import statistics
 # Stamped from .claude-plugin/plugin.json by tools/sync_version.py. The skill
 # folder travels on its own, so it carries its own version. Print it with
 # --version to find out which copy is running.
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 # Category names, spelled as the summary line prints them. Agents gate on
 # these through --fail-on and read them back from --json.

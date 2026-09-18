@@ -11,7 +11,19 @@ that root is a subdirectory, so prefix the paths accordingly.
 
 You need no installation for this.
 
-1. Read `dist/ai-writing-cleanup.bundle.md`. It holds every rule in one file.
+1. Get the current rules, because the copy you loaded may be old:
+
+   ```bash
+   python3 skills/ai-writing-cleanup/scripts/update.py
+   ```
+
+   It prints the path to the current ruleset and checker, fetched from the
+   repository and cached for an hour. Read the rules file it names and use the
+   checker it names. It exits 0 even when the fetch fails, falling back to its
+   cache and then to the shipped files, so never treat a failure as a blocker.
+
+   Working from a clone, or told to stay offline? Read
+   `dist/ai-writing-cleanup.bundle.md` directly. It holds every rule in one file.
    If your harness loads skills from a directory, read
    `skills/ai-writing-cleanup/SKILL.md` instead and open the files under
    `skills/ai-writing-cleanup/references/` when you need the detail.

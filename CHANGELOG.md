@@ -1,5 +1,43 @@
 # Changelog
 
+## 1.4.0
+
+The installed skill now follows the repository. Push a change here and every
+installed copy picks it up on its next run, with no reinstall and no re-upload.
+
+### Added
+
+- `skills/ai-writing-cleanup/scripts/update.py`. It fetches the ruleset and the
+  checker from this repository, caches them under `~/.cache/ai-writing-cleanup`
+  for an hour, and prints where they landed.
+- Step 1 of the skill's workflow runs it and says to follow the fetched rules in
+  preference to the loaded SKILL.md. The remaining steps renumbered.
+- The generated bundle opens by telling a reader that the fetch is already done,
+  so following it cannot loop back into the updater.
+
+### How it fails
+
+Never in a way that blocks an edit. A failed fetch falls back to the cache, and a
+missing cache falls back to the files shipped beside the script. The exit code is
+0 in every case. `--offline` skips the network, `--status` reports without
+fetching, and `--force` ignores the cache.
+
+Before trusting a download it requires HTTPS, a plausible size, the markers that
+file should contain, and, for the checker, that the Python parses. That catches
+an error page, a captive portal, and a truncated transfer.
+
+### What you are trusting
+
+This runs Python fetched from the repository. Anyone who can push here can change
+both the rules the skill applies and the code it runs. That is the bargain any
+self-updating tool makes, and 1.3.0 argued against taking it. The deciding
+argument was practical: the skill is edited often, and re-uploading a zip after
+every edit was not going to happen, so the copies would drift instead. Drift is
+the worse failure. `AI_WRITING_CLEANUP_RAW` points the updater at a fork,
+`AI_WRITING_CLEANUP_TTL` changes the cache lifetime.
+
+This supersedes the `Deliberately not added` note in 1.3.0.
+
 ## 1.3.0
 
 Makes version drift diagnosable. A skill folder travels on its own, uploaded to
@@ -30,6 +68,11 @@ would also put a network call on the path of every edit, in a tool that is
 otherwise offline and stdlib only, and an instruction to fetch and follow remote
 content is a poor thing to bake into a skill. Stamping the version solves the
 part that was actually broken, which was telling copies apart.
+
+Reversed in 1.4.0. The objection about a skill not updating itself was right, and
+the answer was to fetch the rules rather than the folder. The objection about
+trusting remote content still stands, and 1.4.0 states it plainly instead of
+pretending it went away.
 
 ## 1.2.1
 
