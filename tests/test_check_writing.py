@@ -355,5 +355,64 @@ class AgentEntryPoints(unittest.TestCase):
         self.assertIn("--into", done.stdout)
 
 
+class Versioning(unittest.TestCase):
+    """The skill folder travels alone, so it has to say which version it is."""
+
+    def plugin_version(self):
+        return json.loads((REPO / ".claude-plugin" / "plugin.json")
+                          .read_text(encoding="utf-8"))["version"]
+
+    def test_checker_reports_its_version(self):
+        done = run_checker("--version")
+        self.assertEqual(done.returncode, 0)
+        self.assertIn(self.plugin_version(), done.stdout)
+
+    def test_short_version_flag(self):
+        self.assertEqual(run_checker("-V").stdout, run_checker("--version").stdout)
+
+    def test_version_needs_no_input(self):
+        """--version must not block on stdin the way --help once did."""
+        done = subprocess.run([sys.executable, str(SCRIPT), "--version"],
+                              stdin=subprocess.DEVNULL, capture_output=True,
+                              text=True, timeout=10)
+        self.assertEqual(done.returncode, 0)
+
+    def test_skill_frontmatter_carries_the_version(self):
+        head = (REPO / "skills" / "ai-writing-cleanup" / "SKILL.md").read_text(
+            encoding="utf-8").split("---")[1]
+        self.assertIn("version: " + self.plugin_version(), head)
+
+    def test_json_report_carries_the_version(self):
+        done = run_checker(str(REPO / "AGENTS.md"), "--json")
+        self.assertEqual(json.loads(done.stdout)["version"], self.plugin_version())
+
+    def test_everything_is_stamped_consistently(self):
+        done = subprocess.run(
+            [sys.executable, str(REPO / "tools" / "sync_version.py"), "--check"],
+            capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+
+class ReleasePackage(unittest.TestCase):
+    """The zip is the only thing that can change an account's copy."""
+
+    def test_release_builds(self):
+        done = subprocess.run(
+            [sys.executable, str(REPO / "tools" / "build_release.py"), "--check"],
+            capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+    def test_release_holds_the_skill_and_nothing_else(self):
+        done = subprocess.run(
+            [sys.executable, str(REPO / "tools" / "build_release.py"), "--check"],
+            capture_output=True, text=True)
+        listed = [l.strip() for l in done.stdout.splitlines() if l.startswith("  ")]
+        self.assertIn("ai-writing-cleanup/SKILL.md", listed)
+        self.assertIn("ai-writing-cleanup/scripts/check_writing.py", listed)
+        for entry in listed:
+            self.assertNotIn("__pycache__", entry)
+            self.assertFalse(entry.endswith(".pyc"))
+
+
 if __name__ == "__main__":
     unittest.main()

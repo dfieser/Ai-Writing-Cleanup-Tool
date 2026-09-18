@@ -21,10 +21,17 @@ inside this repository.
 ```bash
 python3 -m unittest discover -s tests
 python3 tools/build_bundle.py --check
+python3 tools/sync_version.py --check
 ```
 
 Rebuild the bundle with `python3 tools/build_bundle.py` after editing `SKILL.md`
 or either reference file. CI fails when the bundle is stale.
+
+The version lives in `.claude-plugin/plugin.json`. After changing it, run
+`python3 tools/sync_version.py` to stamp it into the SKILL.md frontmatter and
+`check_writing.py`. `python3 tools/build_release.py` then builds the zip that
+updates an account copy, which is the only way to change the skill that follows
+you into other workspaces.
 
 ## House style
 

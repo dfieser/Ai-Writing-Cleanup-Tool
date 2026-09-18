@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.3.0
+
+Makes version drift diagnosable. A skill folder travels on its own, uploaded to
+an account or copied into a project, and until now no copy could say which one it
+was. That is what made the drift in 1.2.x hard to see.
+
+### Added
+
+- `--version` and `-V` on the checker, which print the version of the copy that
+  is running. The `--json` report carries the same value under `version`.
+- A `version` field in the SKILL.md frontmatter, so the version travels with the
+  folder wherever it goes.
+- `tools/sync_version.py`, which stamps the version from
+  `.claude-plugin/plugin.json` into the SKILL.md frontmatter and the checker.
+  `--check` reports drift and exits 1.
+- `tools/build_release.py`, which builds `dist/ai-writing-cleanup-<version>.zip`,
+  the package you upload to change an account copy. It skips `__pycache__` and
+  compiled files, and it refuses to build when the version is not stamped.
+- CI now verifies the stamp, builds the package, and attaches it to the run, so
+  the upload zip can be downloaded from the Actions tab without a clone.
+- The generated bundle names its version in the header.
+
+### Deliberately not added
+
+A check for updates at the start of a run. A skill cannot update itself, so the
+check could only report staleness that the reader still has to fix by hand. It
+would also put a network call on the path of every edit, in a tool that is
+otherwise offline and stdlib only, and an instruction to fetch and follow remote
+content is a poor thing to bake into a skill. Stamping the version solves the
+part that was actually broken, which was telling copies apart.
+
 ## 1.2.1
 
 ### Fixed

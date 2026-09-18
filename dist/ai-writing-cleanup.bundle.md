@@ -1,5 +1,7 @@
 # AI Writing Cleanup: complete ruleset
 
+Version 1.3.0.
+
 One file holding every rule from the ai-writing-cleanup skill. It exists for an
 agent that cannot load a skill directory and needs the whole ruleset in a single
 read.

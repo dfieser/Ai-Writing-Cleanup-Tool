@@ -207,12 +207,42 @@ skills/
     references/       detailed reference material
     scripts/          check_writing.py
 tests/                unit tests for the checker
-tools/build_bundle.py regenerates dist/ from the skill sources
+tools/build_bundle.py regenerates the one-file ruleset
+tools/build_release.py builds the zip you upload to an account
+tools/sync_version.py  stamps the version into the skill
 wiki/                 source for the GitHub wiki pages
 install.sh            installer
 publish-wiki.sh       pushes wiki/ to the GitHub wiki from a terminal
 .github/workflows/    tests, the documentation gate, and the wiki publisher
 ```
+
+## Updating an account copy
+
+A skill uploaded to a Claude account is the copy that follows you into other
+workspaces, and uploading is the only way to change it. Nothing in a clone
+reaches it.
+
+Build the package:
+
+```bash
+python3 tools/build_release.py
+```
+
+That writes `dist/ai-writing-cleanup-<version>.zip` holding the skill and
+nothing else. Upload it at claude.ai under Settings, Capabilities, Skills. Every
+CI run also attaches the same zip, so you can download it from the Actions tab
+without a clone.
+
+The version lives in `.claude-plugin/plugin.json`. `tools/sync_version.py`
+stamps it into the SKILL.md frontmatter and into `check_writing.py`, so a copy
+that has travelled somewhere can still say what it is:
+
+```bash
+python3 skills/ai-writing-cleanup/scripts/check_writing.py --version
+```
+
+CI fails when those drift apart, and the release build refuses to package an
+unstamped skill.
 
 ## Contributing
 

@@ -94,6 +94,7 @@ python3 skills/ai-writing-cleanup/scripts/check_writing.py TARGET [options]
 | `--json` | Machine-readable report on stdout |
 | `--quiet` | Summary line only |
 | `--fail-on GROUP` | Exit 1 when a selected category is above zero |
+| `--version` | Which copy of the skill this is |
 | `--help` | Usage text |
 
 Exit codes: 0 means it finished and found nothing in the categories
@@ -117,6 +118,7 @@ The JSON report carries these top-level keys:
 | `abbreviations` | Short forms sorted into wasteful, spell out, and introduce |
 | `tense` | Present, past, and future counts |
 | `notes` | Which categories guess, and the caveat that goes with them |
+| `version` | The skill version that produced the report |
 
 ## Rules you must not break
 

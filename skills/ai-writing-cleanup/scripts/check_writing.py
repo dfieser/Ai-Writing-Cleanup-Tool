@@ -13,6 +13,7 @@ Usage:
     python3 check_writing.py file.md --quiet     # summary line only
     python3 check_writing.py file.md --json      # machine-readable report
     python3 check_writing.py file.md --fail-on mechanics   # exit 1 on defects
+    python3 check_writing.py --version           # which copy is this?
 
 Exit codes:
     0  finished, and nothing the --fail-on selection covers was found
@@ -36,6 +37,11 @@ import json
 import re
 import sys
 import statistics
+
+# Stamped from .claude-plugin/plugin.json by tools/sync_version.py. The skill
+# folder travels on its own, so it carries its own version. Print it with
+# --version to find out which copy is running.
+__version__ = "1.3.0"
 
 # Category names, spelled as the summary line prints them. Agents gate on
 # these through --fail-on and read them back from --json.
@@ -920,6 +926,9 @@ def main():
     if "-h" in argv or "--help" in argv:
         print(__doc__)
         return 0
+    if "--version" in argv or "-V" in argv:
+        print("check_writing.py %s (ai-writing-cleanup)" % __version__)
+        return 0
 
     quiet = False
     as_json = False
@@ -1046,6 +1055,7 @@ def main():
         cv = (statistics.pstdev(lengths) / mean) if len(lengths) >= 2 and mean else 0.0
         print(json.dumps({
             "file": arg if arg and arg != "-" else "<stdin>",
+            "version": __version__,
             "verdict": "clean" if problems == 0 else "needs-work",
             "scored_total": problems,
             "counts": counts,

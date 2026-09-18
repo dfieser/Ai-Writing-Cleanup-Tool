@@ -84,16 +84,46 @@ jobs:
             { echo '::error::a bad category should exit 2'; exit 1; }
           echo "exit codes OK"
 
-  bundle:
-    name: single-file bundle is current
+  artifacts:
+    name: generated artifacts are current
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - name: Check the bundle matches the skill sources
         run: python3 tools/build_bundle.py --check
+
+      - name: Check the version is stamped everywhere
+        run: python3 tools/sync_version.py --check
+
+      - name: Check the upload package builds
+        run: python3 tools/build_release.py --check
+
+      - name: Check the checker reports the same version
+        run: |
+          stamped=$(python3 -c "
+          import json
+          print(json.load(open('.claude-plugin/plugin.json'))['version'])
+          ")
+          reported=$(python3 skills/ai-writing-cleanup/scripts/check_writing.py \
+            --version | awk '{print $2}')
+          echo "plugin.json=$stamped  check_writing.py=$reported"
+          [ "$stamped" = "$reported" ] || {
+            echo "::error::the checker reports $reported, plugin.json says $stamped"
+            exit 1
+          }
+
+      - name: Build the upload package and keep it
+        run: python3 tools/build_release.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-writing-cleanup-skill
+          path: dist/ai-writing-cleanup-*.zip
+          if-no-files-found: error
 
   manifests:
     name: validate plugin manifests

@@ -17,7 +17,16 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 SKILL = REPO / "skills" / "ai-writing-cleanup"
 OUT = REPO / "dist" / "ai-writing-cleanup.bundle.md"
 
+
+def version():
+    import json
+    return json.loads((REPO / ".claude-plugin" / "plugin.json")
+                      .read_text(encoding="utf-8"))["version"]
+
+
 HEADER = """# AI Writing Cleanup: complete ruleset
+
+Version {version}.
 
 One file holding every rule from the ai-writing-cleanup skill. It exists for an
 agent that cannot load a skill directory and needs the whole ruleset in a single
@@ -87,7 +96,7 @@ def demote(text, levels=1):
 
 
 def build():
-    chunks = [HEADER]
+    chunks = [HEADER.replace("{version}", version())]
     for rel, title, path in PARTS:
         body = demote(strip_frontmatter(path.read_text(encoding="utf-8")))
         chunks.append(

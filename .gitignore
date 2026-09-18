@@ -17,3 +17,6 @@ Thumbs.db
 
 # Local Claude state
 .claude/settings.local.json
+
+# Release packages, rebuilt by tools/build_release.py
+dist/*.zip

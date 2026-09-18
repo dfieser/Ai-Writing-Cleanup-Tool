@@ -1,5 +1,6 @@
 ---
 name: ai-writing-cleanup
+version: 1.3.0
 description: >-
   Edit technical writing so it is clear, direct, and reads like a knowledgeable
   person wrote it rather than a language model. Use this whenever someone wants
